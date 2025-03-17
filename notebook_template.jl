@@ -9,3 +9,5 @@ using OrdinaryDiffEqNonlinearSolve
 using WGLMakie
 
 ###
+
+@info "Hello from notebook"

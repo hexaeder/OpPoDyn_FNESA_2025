@@ -20,11 +20,27 @@ jobs:
 
     - uses: julia-actions/cache@v2
 
+    - name: Modify global env
+      shell: julia --color=yes {0}
+      run: |
+         using Pkg;
+         Pkg.add(["Literate", "NBInclude"])
+         Pkg.instantiate()
+
     - name: Generate Notebook
       run: julia gen_notebook.jl
 
     - name: Create Notebook Archive
       run: zip -r notebook.zip notebook/
+
+
+    - name: Test the notebook
+      shell: julia --project=notebook --color=yes {0}
+      run: |
+         import Pkg;
+         Pkg.instantiate()
+         using NBInclude
+         @nbinclude("workshop.ipynb")
 
     - name: Get Commit SHA
       id: vars

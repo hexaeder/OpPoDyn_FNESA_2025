@@ -4,11 +4,9 @@ BASEDIR = @__DIR__
 NBDIR = joinpath(BASEDIR, "notebook")
 
 @info "Generating notebook from template"
-if haskey(ENV, "GITHUB_ACTIONS")
-    # use temp env in github actions
-    import Pkg; Pkg.activate(temp=true)
-    Pkg.add("Literate")
-else
+
+# use global env in github actions
+if !haskey(ENV, "GITHUB_ACTIONS")
     import Pkg; Pkg.activate(@__DIR__)
 end
 
