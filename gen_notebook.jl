@@ -38,16 +38,16 @@ end
 
 project["deps"][companion_name] = companion_uuid
 
-current_rev = if haskey(ENV, "GITHUB_ACTIONS")
-    ENV["GITHUB_SHA"]  # Available automatically in GitHub Actions
+project["sources"][companion_name] = if haskey(ENV, "GITHUB_ACTIONS")
+    # Available automatically in GitHub Actions
+    Dict(
+        "url" => "https://github.com/hexaeder/OpPoDyn_FNESA_2025",
+        "rev" => ENV["GITHUB_SHA"]
+    )
 else
-    "main"  # Default for local runs
+    Dict("path" => "..",)
 end
 
-project["sources"][companion_name] = Dict(
-    "url" => "https://github.com/hexaeder/OpPoDyn_FNESA_2025",
-    "rev" => current_rev
-)
 
 open(joinpath(TMPDIR, "Project.toml"), "w") do io
     TOML.print(io, project)

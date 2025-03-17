@@ -1,4 +1,4 @@
-name: Generate and Publish Notebook Release
+name: Generate, Test and Publish Notebook
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
          import Pkg;
          Pkg.instantiate()
          using NBInclude
-         @nbinclude("workshop.ipynb")
+         @nbinclude(joinpath("notebook", "workshop.ipynb"))
 
     - name: Get Commit SHA
       id: vars
