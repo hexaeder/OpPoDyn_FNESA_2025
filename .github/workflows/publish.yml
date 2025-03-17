@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write  # Grant permission to create releases
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -15,7 +18,7 @@ jobs:
       with:
         version: '1'
 
-    - uses: julia-actions/cache@v2
+    # - uses: julia-actions/cache@v2 # not necessary when not testing anyway
 
     - name: Generate Notebook
       run: julia gen_notebook.jl
