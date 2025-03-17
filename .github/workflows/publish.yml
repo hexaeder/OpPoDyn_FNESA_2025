@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write  # Grant permission to create releases
+  contents: write  # Allow GitHub Actions to create releases
 
 jobs:
   build-and-release:
@@ -18,16 +18,22 @@ jobs:
       with:
         version: '1'
 
-    # - uses: julia-actions/cache@v2 # not necessary when not testing anyway
+    - uses: julia-actions/cache@v2
 
     - name: Generate Notebook
       run: julia gen_notebook.jl
+
+    - name: Create Notebook Archive
+      run: zip -r notebook.zip notebook/
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: latest
-        files: notebook/**
-        body: "Automated notebook release - generated at $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
+        name: "Notebook Release (${{ github.sha }})"
+        files: notebook.zip
+        body: "Automated notebook release for commit [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})"
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
