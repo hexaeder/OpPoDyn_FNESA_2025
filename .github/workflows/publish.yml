@@ -26,11 +26,15 @@ jobs:
     - name: Create Notebook Archive
       run: zip -r notebook.zip notebook/
 
+    - name: Get Commit SHA
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: latest
-        name: "Notebook Release (${{ github.sha }})"
+        tag_name: notebook-${{ env.sha_short }}  # Unique tag per commit
+        name: "Notebook Release (${{ env.sha_short }})"
         files: notebook.zip
         body: "Automated notebook release for commit [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})"
         draft: false
