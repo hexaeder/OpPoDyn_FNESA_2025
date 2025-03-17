@@ -1,0 +1,29 @@
+name: Generate and Publish Notebook Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Julia
+      uses: julia-actions/setup-julia@v2
+      with:
+        version: '1'
+
+    - uses: julia-actions/cache@v2
+
+    - name: Generate Notebook
+      run: julia gen_notebook.jl
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: notebook/*
+        body: "Automated notebook release - generated at $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
