@@ -816,6 +816,698 @@ function load_ieee39_bus()
         )
     ]
 
+    edgemodels = [
+        Line(
+            pi_line;
+            src = 1, dst = 2,
+            name = :Line_01_02,
+            pibranch₊B_dst = 0.34934980775013186,
+            pibranch₊B_src = 0.34934980775013186,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0035000008081267795,
+            pibranch₊X = 0.041100002833102334,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 1, dst = 39,
+            name = :Line_01_39,
+            pibranch₊B_dst = 0.37500083737865836,
+            pibranch₊B_src = 0.37500083737865836,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.001000000008692344,
+            pibranch₊X = 0.025000000993410747,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 2, dst = 3,
+            name = :Line_02_03,
+            pibranch₊B_dst = 0.12859993746580536,
+            pibranch₊B_src = 0.12859993746580536,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0012999997427097568,
+            pibranch₊X = 0.015100000184657953,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 2, dst = 25,
+            name = :Line_02_25,
+            pibranch₊B_dst = 0.07299967653043317,
+            pibranch₊B_src = 0.07299967653043317,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.006999999645050112,
+            pibranch₊X = 0.008600000003290073,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 2, dst = 30,
+            name = :Line_02_30,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0,
+            pibranch₊X = 0.01810000091791153,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9756097560975611,
+        ),
+
+        Line(
+            pi_line;
+            src = 3, dst = 4,
+            name = :Line_03_04,
+            pibranch₊B_dst = 0.11069922581586487,
+            pibranch₊B_src = 0.11069922581586487,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0013000000512187267,
+            pibranch₊X = 0.021300001215596744,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 3, dst = 18,
+            name = :Line_03_18,
+            pibranch₊B_dst = 0.10689967736603885,
+            pibranch₊B_src = 0.10689967736603885,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0010999999777895828,
+            pibranch₊X = 0.013300000474651278,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 4, dst = 5,
+            name = :Line_04_05,
+            pibranch₊B_dst = 0.06710000454913279,
+            pibranch₊B_src = 0.06710000454913279,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0008000000380388057,
+            pibranch₊X = 0.01280000060862089,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 4, dst = 14,
+            name = :Line_04_14,
+            pibranch₊B_dst = 0.0690997502600336,
+            pibranch₊B_src = 0.0690997502600336,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0007999999450699972,
+            pibranch₊X = 0.01290000096642154,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 5, dst = 6,
+            name = :Line_05_06,
+            pibranch₊B_dst = 0.02170006756413536,
+            pibranch₊B_src = 0.02170006756413536,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.00019999997696545915,
+            pibranch₊X = 0.002600000168695795,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 5, dst = 8,
+            name = :Line_05_08,
+            pibranch₊B_dst = 0.07380036891452198,
+            pibranch₊B_src = 0.07380036891452198,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0007999999671506447,
+            pibranch₊X = 0.011200000652729084,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 6, dst = 7,
+            name = :Line_06_07,
+            pibranch₊B_dst = 0.05650008418231701,
+            pibranch₊B_src = 0.05650008418231701,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0006000000992521584,
+            pibranch₊X = 0.009200000227121108,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 6, dst = 11,
+            name = :Line_06_11,
+            pibranch₊B_dst = 0.06945033397823791,
+            pibranch₊B_src = 0.06945033397823791,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0007000001105582384,
+            pibranch₊X = 0.008200000495060337,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 6, dst = 31,
+            name = :Line_06_31,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0,
+            pibranch₊X = 0.024999999574252536,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9345794392523364,
+        ),
+
+        Line(
+            pi_line;
+            src = 7, dst = 8,
+            name = :Line_07_08,
+            pibranch₊B_dst = 0.03900006961213349,
+            pibranch₊B_src = 0.03900006961213349,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0004000000471277332,
+            pibranch₊X = 0.004600000113560554,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 8, dst = 9,
+            name = :Line_08_09,
+            pibranch₊B_dst = 0.19020092997037732,
+            pibranch₊B_src = 0.19020092997037732,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0022999994613120225,
+            pibranch₊X = 0.036300001042454046,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 9, dst = 39,
+            name = :Line_09_39,
+            pibranch₊B_dst = 0.6000004503542706,
+            pibranch₊B_src = 0.6000004503542706,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.001000000008692344,
+            pibranch₊X = 0.025000000993410747,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 10, dst = 11,
+            name = :Line_10_11,
+            pibranch₊B_dst = 0.03645007677249099,
+            pibranch₊B_src = 0.03645007677249099,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0004000000361641648,
+            pibranch₊X = 0.0043000000016450365,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 10, dst = 13,
+            name = :Line_10_13,
+            pibranch₊B_dst = 0.03645007677249099,
+            pibranch₊B_src = 0.03645007677249099,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0004000000361641648,
+            pibranch₊X = 0.0043000000016450365,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 10, dst = 32,
+            name = :Line_10_32,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0,
+            pibranch₊X = 0.019999999552965164,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9345794392523364,
+        ),
+
+        Line(
+            pi_line;
+            src = 12, dst = 11,
+            name = :Line_12_11,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.001599999920775493,
+            pibranch₊X = 0.043499981363614396,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9940357850526872,
+        ),
+
+        Line(
+            pi_line;
+            src = 12, dst = 13,
+            name = :Line_12_13,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.001599999920775493,
+            pibranch₊X = 0.043499981363614396,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9940357850526872,
+        ),
+
+        Line(
+            pi_line;
+            src = 13, dst = 14,
+            name = :Line_13_14,
+            pibranch₊B_dst = 0.08615023233953206,
+            pibranch₊B_src = 0.08615023233953206,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0008999999092163725,
+            pibranch₊X = 0.010100000562867662,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 14, dst = 15,
+            name = :Line_14_15,
+            pibranch₊B_dst = 0.18299926773667938,
+            pibranch₊B_src = 0.18299926773667938,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0017999998116882212,
+            pibranch₊X = 0.021700000723826482,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 15, dst = 16,
+            name = :Line_15_16,
+            pibranch₊B_dst = 0.08550016573713853,
+            pibranch₊B_src = 0.08550016573713853,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0008999998318071515,
+            pibranch₊X = 0.009399999981235977,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 16, dst = 17,
+            name = :Line_16_17,
+            pibranch₊B_dst = 0.06710031027017067,
+            pibranch₊B_src = 0.06710031027017067,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0007000001127483577,
+            pibranch₊X = 0.00890000011520559,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 16, dst = 19,
+            name = :Line_16_19,
+            pibranch₊B_dst = 0.1519991827766055,
+            pibranch₊B_src = 0.1519991827766055,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0015999997404123638,
+            pibranch₊X = 0.019500000544103637,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 16, dst = 21,
+            name = :Line_16_21,
+            pibranch₊B_dst = 0.1274000549668954,
+            pibranch₊B_src = 0.1274000549668954,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.000800000084957908,
+            pibranch₊X = 0.013500000228766145,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 16, dst = 24,
+            name = :Line_16_24,
+            pibranch₊B_dst = 0.03400016003740206,
+            pibranch₊B_src = 0.03400016003740206,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.000300000054881718,
+            pibranch₊X = 0.00590000043828006,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 17, dst = 18,
+            name = :Line_17_18,
+            pibranch₊B_dst = 0.06594968328342747,
+            pibranch₊B_src = 0.06594968328342747,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0007000001105582384,
+            pibranch₊X = 0.008200000495060337,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 17, dst = 27,
+            name = :Line_17_27,
+            pibranch₊B_dst = 0.16079999806656406,
+            pibranch₊B_src = 0.16079999806656406,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0012999998392540593,
+            pibranch₊X = 0.017300000364380796,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 19, dst = 20,
+            name = :Line_19_20,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0006999999284744263,
+            pibranch₊X = 0.013799998164176942,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9433962264150942,
+        ),
+
+        Line(
+            pi_line;
+            src = 19, dst = 33,
+            name = :Line_19_33,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.000699999975040555,
+            pibranch₊X = 0.014199993573129177,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9345794392523364,
+        ),
+
+        Line(
+            pi_line;
+            src = 20, dst = 34,
+            name = :Line_20_34,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0009000000233451525,
+            pibranch₊X = 0.01800000046690305,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.991080277736662,
+        ),
+
+        Line(
+            pi_line;
+            src = 21, dst = 22,
+            name = :Line_21_22,
+            pibranch₊B_dst = 0.1282504022879528,
+            pibranch₊B_src = 0.1282504022879528,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0008000001171756499,
+            pibranch₊X = 0.01400000009479653,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 22, dst = 23,
+            name = :Line_22_23,
+            pibranch₊B_dst = 0.09230039064711089,
+            pibranch₊B_src = 0.09230039064711089,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0006000000435523298,
+            pibranch₊X = 0.009600000696837276,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 22, dst = 35,
+            name = :Line_22_35,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0,
+            pibranch₊X = 0.014299999922513962,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9756097560975611,
+        ),
+
+        Line(
+            pi_line;
+            src = 23, dst = 24,
+            name = :Line_23_24,
+            pibranch₊B_dst = 0.18050128030143106,
+            pibranch₊B_src = 0.18050128030143106,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.002199999725987236,
+            pibranch₊X = 0.03500000215996419,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 23, dst = 36,
+            name = :Line_23_36,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0004999999489103045,
+            pibranch₊X = 0.02720000488417489,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1.0,
+        ),
+
+        Line(
+            pi_line;
+            src = 25, dst = 26,
+            name = :Line_25_26,
+            pibranch₊B_dst = 0.2564997461504503,
+            pibranch₊B_src = 0.2564997461504503,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0031999999126759646,
+            pibranch₊X = 0.03230000211421096,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 25, dst = 37,
+            name = :Line_25_37,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0005999999786061899,
+            pibranch₊X = 0.023200001035417826,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9756097560975611,
+        ),
+
+        Line(
+            pi_line;
+            src = 26, dst = 27,
+            name = :Line_26_27,
+            pibranch₊B_dst = 0.11979967705921879,
+            pibranch₊B_src = 0.11979967705921879,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0014000001078834552,
+            pibranch₊X = 0.014700000676428217,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 26, dst = 28,
+            name = :Line_26_28,
+            pibranch₊B_dst = 0.3900985890418224,
+            pibranch₊B_src = 0.3900985890418224,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.004299999919858043,
+            pibranch₊X = 0.04740000037589605,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 26, dst = 29,
+            name = :Line_26_29,
+            pibranch₊B_dst = 0.5144984478217224,
+            pibranch₊B_src = 0.5144984478217224,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.00569999994089206,
+            pibranch₊X = 0.06250000248352687,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 28, dst = 29,
+            name = :Line_28_29,
+            pibranch₊B_dst = 0.12450040614505094,
+            pibranch₊B_src = 0.12450040614505094,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.0014000000258129486,
+            pibranch₊X = 0.015100000184657953,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 1,
+        ),
+
+        Line(
+            pi_line;
+            src = 29, dst = 38,
+            name = :Line_29_38,
+            pibranch₊B_dst = 0.0,
+            pibranch₊B_src = 0.0,
+            pibranch₊G_dst = 0.0,
+            pibranch₊G_src = 0.0,
+            pibranch₊R = 0.000800000037997961,
+            pibranch₊X = 0.015600000321865082,
+            pibranch₊active = 1,
+            pibranch₊r_dst = 1,
+            pibranch₊r_src = 0.9756097560975611,
+        )
+    ]
+
 end
 
 @compile_workload begin
