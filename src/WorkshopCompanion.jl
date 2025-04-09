@@ -12,6 +12,7 @@ using OrdinaryDiffEqNonlinearSolve
 using OrdinaryDiffEqRosenbrock
 using PrecompileTools
 using WGLMakie
+using LinearAlgebra
 
 function load_39bus()
     ####
