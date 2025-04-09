@@ -7,93 +7,31 @@ using ModelingToolkit
 using NetworkDynamics
 using NetworkDynamicsInspector
 using OpPoDyn
+using OpPoDyn.Library
 using OrdinaryDiffEqNonlinearSolve
 using OrdinaryDiffEqRosenbrock
 using PrecompileTools
 using WGLMakie
 
-function load_ieee39_bus()
-
-  # KirchhoffBus:
-  #   CONSTRUCTOR: MTKBus
-
-  # ZIPLoad:
-  #   CONSTRUCTOR: ZIPLoad
-  #   KpZ: 1.0
-  #   KpC: 0.0
-  #   KpI: 0.0
-  #   KqZ: 1.0
-  #   KqI: 0.0
-  #   KqC: 0.0
-  #   # Pset defined in bus
-  #   name: :load
-
-  # LoadBus:
-  #   CONSTRUCTOR: MTKBus
-  #   ARGS:
-  #     - Models.ZIPLoad
-
-  # ## Base Machine model
-  # Machine:
-  #   CONSTRUCTOR: SauerPaiMachine
-  #   name: :machine
-
-  # AVRTypeI:
-  #   CONSTRUCTOR: AVRTypeI
-  #   ceiling_function: :quadratic
-  #   name: :avr
-
-  # TGOV1:
-  #   CONSTRUCTOR: TGOV1
-  #   name: :gov
-
-  # ControlledGenerator:
-  #   CONSTRUCTOR: CompositeInjector
-  #   ARGS:
-  #     - Models.Machine
-  #     - Models.AVRTypeI
-  #     - Models.TGOV1
-  #   name: :ctrld_gen
-
-  # ControlledGenBus:
-  #   CONSTRUCTOR: MTKBus
-  #   ARGS:
-  #     - Models.ControlledGenerator
-
-  # LoadControlledGenBus:
-  #   CONSTRUCTOR: MTKBus
-  #   ARGS:
-  #     - Models.ZIPLoad
-  #     - Models.ControlledGenerator
-
-  # LoadMachineBus:
-  #   CONSTRUCTOR: MTKBus
-  #   ARGS:
-  #     - Models.ZIPLoad
-  #     - MODEL: Models.Machine
-  #       vf_input: false
-  #       τ_m_input: false
-    
-    # Define model components
-
+function load_39bus()
     ####
     #### Component Models
     ####
-    
+
     # basic load model
-    zip_load = ZIPLoad(; 
-        KpZ = 1.0, 
-        KpC = 0.0, 
-        KpI = 0.0, 
-        KqZ = 1.0, 
-        KqI = 0.0, 
-        KqC = 0.0, 
+    zip_load = ZIPLoad(;
+        KpZ = 1.0,
+        KpC = 0.0,
+        KpI = 0.0,
+        KqZ = 1.0,
+        KqI = 0.0,
+        KqC = 0.0,
         name = :load
     )
-    
+
     # machine wihtoun controllers
     machine = SauerPaiMachine(; vf_input = false, τ_m_input = false, name = :machine)
-    
+
     # controlled generator (and submodels)
     ctrl_machine = SauerPaiMachine(; name = :machine)
     avr = AVRTypeI(; ceiling_function = :quadratic, name = :avr)
@@ -108,48 +46,27 @@ function load_ieee39_bus()
     ####
     #### Bus models
     ####
-    kirchoff_bus = MTKBus()
-    load_bus = MTKBus(zip_load)
-    controlled_gen_bus = MTKBus(controlled_generator)
-    load_controlled_gen_bus = MTKBus(zip_load, controlled_generator)
-    load_machine_bus = MTKBus(
+    # by calling `Bus` on the mtkbus objects we force the symbolic simplification
+    # to happen. later on `Bus(::VertexModel)` will just reconstruct the component
+    # this may speed up cosntruction times of the network
+    kirchoff_bus = Bus(MTKBus())
+    load_bus = Bus(MTKBus(zip_load))
+    controlled_gen_bus = Bus(MTKBus(controlled_generator))
+    load_controlled_gen_bus = Bus(MTKBus(zip_load, controlled_generator))
+    load_machine_bus = Bus(MTKBus(
         zip_load,
         SauerPaiMachine(; vf_input = false, τ_m_input = false, name = :machine)
-    )
+    ))
 
     ####
     #### Line Models
     ####
     pi_branch = PiLine_fault(; name = :pibranch)
-    pi_line = MTKLine(pi_branch)
+    pi_line = Line(MTKLine(pi_branch))
 
     ####
     #### Nodes
     ####
-
-  # 1:
-  #   CONSTRUCTOR: Bus
-  #   ARGS:
-  #     - MODEL: Models.KirchhoffBus
-  #   pf: Models.PF_PQ
-  #   name: :Bus_01
-  # 2:
-  #   CONSTRUCTOR: Bus
-  #   ARGS:
-  #     - MODEL: Models.KirchhoffBus
-  #   pf: Models.PF_PQ
-  #   name: :Bus_02
-  # 3:
-  #   CONSTRUCTOR: Bus
-  #   ARGS:
-  #     - MODEL: Models.LoadBus
-  #       ARGS[1].Pset: -3.22
-  #       ARGS[1].Qset: -0.024
-  #   pf:
-  #      MODEL: Models.PF_PQ
-  #      P: -3.22
-  #      Q: -0.024
-  #   name: :Bus_03
     vertexmodels = [
         Bus(
             kirchoff_bus;
@@ -1507,11 +1424,18 @@ function load_ieee39_bus()
             pibranch₊r_src = 0.9756097560975611,
         )
     ]
-
+    nw = Network(vertexmodels, edgemodels)
 end
 
 @compile_workload begin
     # include("_precompile_workload.jl")
+    nw = WorkshopCompanion.load_39bus()
+    OpPoDyn.solve_powerflow!(nw)
+    v31_mag = norm(get_initial_state(nw, VIndex(31, [:busbar₊u_r, :busbar₊u_i])))
+    v39_mag = norm(get_initial_state(nw, VIndex(39, [:busbar₊u_r, :busbar₊u_i])))
+    set_default!(nw, VIndex(31,:load₊Vset), v31_mag)
+    set_default!(nw, VIndex(39,:load₊Vset), v39_mag)
+    OpPoDyn.initialize!(nw; verbose=false)
 end
 
 end # module WorkshopCompanion
