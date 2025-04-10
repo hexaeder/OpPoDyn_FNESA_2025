@@ -40,29 +40,66 @@ This repository contains workshop materials for energy system dynamics using Jul
 
 2. **Extract the zip file** to a location of your choice
 
-3. **Navigate to the extracted folder** in your terminal/command prompt
+3. **Opening a Terminal/Command Prompt**
 
-4. **Start Julia and instantiate the environment**
+   #### Windows:
+   - **Method 1**: Right-click on the Start button and select "Windows Terminal" or "Command Prompt"
+   - **Method 2**: Press `Win + R`, type `cmd` or `powershell`, and press Enter
+   - **Method 3**: In File Explorer, navigate to the extracted folder, then right-click while holding Shift and select "Open PowerShell window here" or "Open command window here"
+   
+   #### macOS:
+   - Open Spotlight (Cmd + Space) and type "Terminal", then press Enter
+   - Or navigate to Applications > Utilities > Terminal
+
+   #### Linux:
+   - Usually Ctrl + Alt + T opens a terminal
+   - Or search for "Terminal" in your application menu
+
+4. **Navigating to the Folder**
+
+   Use the `cd` command to navigate to the extracted folder:
 
    ```bash
-   cd path/to/extracted/notebook
-   julia --project=.
+   # Windows example
+   cd C:\path\to\extracted\notebook
+   
+   # macOS/Linux example
+   cd /path/to/extracted/notebook
    ```
 
-   In the Julia REPL, run:
+   Tips for Windows users:
+   - Use `dir` to list files in the current directory
+   - Use `cd ..` to go up one level in the directory tree
+   - You can drag and drop a folder into the terminal window to automatically insert its path
+   - Tab completion will help you navigate: type part of a folder name and press Tab
+
+5. **Starting Julia**
+
+   Once you've navigated to the folder:
+
+   ```bash
+   # On all platforms
+   julia --project=@.
+   ```
+
+6. **Instantiate the environment**
+
+   In the Julia REPL (which looks like `julia>`), run:
    ```julia
    using Pkg
    Pkg.instantiate()
    ```
 
-5. **Start the Jupyter notebook**
+7. **Start the Jupyter notebook**
 
-   To open the Jupyter notebook, start a new julia process in the `notebook` directory and execute the following commands:
+   In the same Julia session:
    ```julia
    using IJulia
    notebook(dir=".")
    ```
 
-6. **Open the workshop notebook**
+   This will open your default web browser with the Jupyter interface.
+
+8. **Open the workshop notebook**
    
    In the Jupyter browser interface that opens, click on `workshop.ipynb` to start the workshop.
