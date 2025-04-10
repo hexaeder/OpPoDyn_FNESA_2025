@@ -1429,7 +1429,6 @@ function load_39bus()
 end
 
 @compile_workload begin
-    # include("_precompile_workload.jl")
     nw = WorkshopCompanion.load_39bus()
     OpPoDyn.solve_powerflow!(nw)
     v31_mag = norm(get_initial_state(nw, VIndex(31, [:busbar₊u_r, :busbar₊u_i])))
@@ -1437,6 +1436,10 @@ end
     set_default!(nw, VIndex(31,:load₊Vset), v31_mag)
     set_default!(nw, VIndex(39,:load₊Vset), v39_mag)
     OpPoDyn.initialize!(nw; verbose=false)
+    # Setup and solve the system for a short simulation
+    u0 = NWState(nw)
+    prob = ODEProblem(nw, uflat(u0), (0, 0.1), pflat(u0))
+    solve(prob, Rodas5P())
 end
 
 end # module WorkshopCompanion
