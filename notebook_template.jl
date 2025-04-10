@@ -184,7 +184,7 @@ mtkbus = MTKBus(inverter)
 
 pfmodel = vertexms[30].metadata[:pfmodel]
 droopbus = Bus(mtkbus; pf=pfmodel, vidx=30, name=:DroopInverter)
-# vertexms[30] = droopbus
+vertexms[30] = droopbus
 
 nw_droop = Network(vertexms, edgems)
 describe_vertices(nw_droop; batch=3:6)
@@ -192,31 +192,42 @@ describe_vertices(nw_droop; batch=3:6)
 pf = solve_powerflow!(nw_droop)
 set_default!(nw_droop, VIndex(31,:load₊Vset), pf."vm [pu]"[31])
 set_default!(nw_droop, VIndex(39,:load₊Vset), pf."vm [pu]"[39])
-# set_default!(nw_droop, VIndex(30,:inverter₊Vset),  pf."vm [pu]"[30])
+set_default!(nw_droop, VIndex(30,:inverter₊Vset),  pf."vm [pu]"[30])
 OpPoDyn.initialize!(nw_droop)
 
 dump_initial_state(nw_droop[VIndex(30)])
 
 u0_droop = NWState(nw_droop)
-# u0_droop.v[30, :inverter₊Kp] = 0.0005
-# u0_droop.v[30, :inverter₊Kq] = -0.04
-# u0_droop.v[30, :inverter₊τ] = 0.01
-u0_droop.v[30, :ctrld_gen₊machine₊H] = 4.0
-prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
-sol_droop = solve(prob_droop, Rodas5P())
-let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Frequency at Bus 30")
-    ts = range(0, 5, length=1000)
-    lines!(ax, ts, sol(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Reference Solution")
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Droop Solution")
-    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :inverter₊ω)).u; label="Droop Solution")
-    axislegend(ax; position=:rb)
-    ax = Axis(fig[2, 1]; title="Voltage magnitude at Bus 30")
-    lines!(ax, ts, sol(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Reference Solution")
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Droop Solution")
-    axislegend(ax)
-    # display(fig)
-    fig
+u0_droop.v[30, :inverter₊Kp] = 0.0005
+u0_droop.v[30, :inverter₊Kq] = -0.04
+u0_droop.v[30, :inverter₊τ] = 0.01
+
+
+for i in 1:length(states)
+    u0_droop.v[30, :inverter₊Kp] = states[end].u[1]
+    u0_droop.v[30, :inverter₊Kq] = states[end].u[2]
+    u0_droop.v[30, :inverter₊τ] = states[end].u[3]
+    # u0_droop.v[30, :ctrld_gen₊machine₊H] = 4.0
+    prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
+    sol_droop = solve(prob_droop, Rodas5P())
+    let fig = Figure()
+        ax = Axis(fig[1, 1]; title="Frequency at Bus 30")
+        ts = range(0.3, 15, length=1000)
+        lines!(ax, ts, sol(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Reference Solution")
+        # lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Droop Solution")
+        lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :inverter₊ω)).u; label="Droop Solution")
+        axislegend(ax; position=:rb)
+        ax = Axis(fig[2, 1]; title="Voltage magnitude at Bus 30")
+        c = 1
+        for N = 6:10
+            lines!(ax, ts, sol(ts; idxs=VIndex(N, :busbar₊u_mag)).u; label="Reference Solution", color=Cycled(c), linestyle=:dash)
+            lines!(ax, ts, sol_droop(ts; idxs=VIndex(N, :busbar₊u_mag)).u; label="Droop Solution",color=Cycled(c))
+            c +=1
+        end
+        axislegend(ax)
+        # display(fig)
+        fig
+    end
 end
 
 
@@ -262,18 +273,21 @@ using Optimization, OptimizationPolyalgorithms
 
 # sol(1:0.1:15, idxs=vidxs(sol_droop, 1:39, [:busbar₊u_r, :busbar₊u_i]))
 # opt_ref = sol(1:0.1:15, idxs=vidxs(sol_droop, 1:39, [:busbar₊u_r, :busbar₊u_i]))
-opt_ref = sol(0.0:0.1:15, idxs=VIndex(30, :busbar₊u_mag))
+# opt_ref = sol(0.3:0.1:15, idxs=[VIndex(30, :busbar₊u_mag), VIndex(30, :ctrld_gen₊machine₊ω)])
+opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
+# opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_mag)])
+# opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_mag), VIndex(1:39, :busbar₊u_arg)])
 # lines(opt_ref.u)
 # opt_ref = sol(0:0.1:15, idxs=[1,2])
 
-# tunable_parameters = [:inverter₊Kp, :inverter₊Kq, :inverter₊τ]
-tunable_parameters = [:ctrld_gen₊machine₊H]
+tunable_parameters = [:inverter₊Kp, :inverter₊Kq, :inverter₊τ]
+# tunable_parameters = [:ctrld_gen₊machine₊H]
 tp_idx = SII.parameter_index(sol_droop, VIndex(30,tunable_parameters))
 # _prob_droop_nocb = remake(prob_droop, callback=nothing)
 
 cb_verbose[] = false
 function loss(p)
-    println("calc loss")
+    # println("calc loss")
     # println("p = ", p)
     allp = similar(p, length(u0_droop.p))
     allp .= pflat(u0_droop.p)
@@ -284,7 +298,9 @@ function loss(p)
         # sensealg = InterpolatingAdjoint(; autojacvec=true),
         # sensealg = GaussAdjoint(; autojacvec=true),
     )
-    @assert SciMLBase.successful_retcode(_sol)
+    if !SciMLBase.successful_retcode(_sol)
+        return Inf
+    end
     # let
     #     fig, ax, p =lines(_sol; idxs=VIndex(30, :busbar₊u_mag))
     #     lines!(sol; idxs=VIndex(30, :busbar₊u_mag))
@@ -303,13 +319,16 @@ function loss(p)
         fig
     end
     =#
-    res = opt_ref.u - _sol(opt_ref.t; idxs=VIndex(30, :busbar₊u_mag)).u
+    # x = _sol(opt_ref.t; idxs=[VIndex(30, :busbar₊u_mag), VIndex(30, :inverter₊ω)])
+    x = _sol(opt_ref.t; idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
+    # x = _sol(opt_ref.t; idxs=[VIndex(1:39, :busbar₊u_mag)])
+    res = opt_ref.u - x.u
     # res = _sol(_sol.t; idxs=VIndex(30, :busbar₊u_mag)).u
-    l = sum(abs2, res)
+    l = sum(abs2, reduce(vcat, res))
     # l = sum(abs2, _sol)
     # l = sum(_sol[3])
     # println("loss = ", l)
-    println("end calc loss")
+    # println("end calc loss")
     return l
 end
 
@@ -319,6 +338,7 @@ callback = function (state, l)
     push!(losses, l)
     push!(states, state)
     display(l)
+    display(state.u)
     return false
 end
 
@@ -333,15 +353,68 @@ end
 # @time ReverseDiff.gradient(loss, [0.0005, -0.04, 0.01])
 # @time Zygote.gradient(loss, [0.0005, -0.04, 0.01])
 
-# p0 = sol_droop(sol_droop.t[begin], idxs=collect(VIndex(30, tunable_parameters)))
-p0 = [2.0]
+p0 = sol_droop(sol_droop.t[begin], idxs=collect(VIndex(30, tunable_parameters)))
+# p0 = [2.0]
 optf = Optimization.OptimizationFunction((x, p) -> loss(x), Optimization.AutoForwardDiff())
 optprob = Optimization.OptimizationProblem(optf, p0; callback)
 # optsol = Optimization.solve(optprob, PolyOpt(), maxiters = 2)
 # optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Descent(0.01), maxiters = 20)
-optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Adam(0.1), maxiters = 30)
+# optprob = Optimization.OptimizationProblem(optf, [0.00025493630685228006, -0.030257386775788278, 0.0006679488509453074]; callback)
+optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Adam(0.01), maxiters = 100)
 
-scatter(losses)
+describe_vertices(extract_nw(prob_droop))
+
+busses = [3,4,7,8,15,16]
+si = length(states)
+let
+    fig = Figure(size=(1000,700))
+    cols = 2
+    rows = ceil(Int, length(busses) / cols)
+    ts = range(0, 15, length=1000)
+
+    # Use parameters from the last optimization state
+    p_opt = copy(pflat(u0_droop))
+    p_opt[tp_idx] .= states[si].u
+    # Create and solve problem with optimized parameters
+    sol_opt = solve(prob_droop, Rodas5P(); p=p_opt)
+    
+    for (i, bus) in enumerate(busses)
+        row, col = divrem(i-1, cols) .+ (0, 1)
+        ax = Axis(fig[row+1, col]; title="Bus $bus Voltage Magnitude")
+        # ylims!(0.90,1.1)
+        ylims!(ax, 0.9, nothing)
+        
+        # Plot reference solution
+        lines!(ax, ts, sol(ts; idxs=VIndex(bus, :busbar₊u_mag)).u; 
+               label="Reference", linestyle=:solid, color=:blue)
+        
+        # Plot droop solution with initial parameters
+        lines!(ax, ts, sol_droop(ts; idxs=VIndex(bus, :busbar₊u_mag)).u; 
+               label="Initial Droop", linestyle=:dash, color=:red)
+        
+        # plot droop solution with optimized parameters
+        lines!(ax, ts, sol_opt(ts; idxs=VIndex(bus, :busbar₊u_mag)).u; 
+                label="Optimized Droop", color=:green)
+        
+        # Only add legend to the first plot to avoid clutter
+        i == 1 && axislegend(ax; position=:rb)
+    end
+    
+    fig
+end
+
+
+# optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.PolyOpt(), maxiters = 20)
+losses[end]
+0.013995965243338706 # polyopt 5
+
+0.02231758396728994
+3-element Vector{Float64}:
+  0.00025493630685228006
+ -0.030257386775788278
+  0.0006679488509453074
+
+  [0.00025493630685228006, -0.030257386775788278, 0.0006679488509453074]
 
 optsol.stats
 optsol
