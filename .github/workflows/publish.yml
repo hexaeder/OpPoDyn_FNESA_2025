@@ -3,6 +3,11 @@ name: Generate, Test and Publish Notebook
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '**.txt'
 
 permissions:
   contents: write  # Allow GitHub Actions to create releases

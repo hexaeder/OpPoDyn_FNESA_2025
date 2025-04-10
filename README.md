@@ -1,105 +1,99 @@
-# Workshop Companion
+# Workshop: Energiesystemdynamik mit Julia
 
-This repository contains workshop materials for energy system dynamics using Julia. The workshop notebook is automatically generated from template files and published as a GitHub release.
+Dieses Repository enthält Workshopmaterialien für Energiesystemdynamik mit Julia, entwickelt für das **Jahrestreffen des Forschungsnetzwerks Energiesystemanalyse** am 6.-7. Juni 2025 in Berlin.
 
-## Getting Started
+## Erste Schritte
 
-### Prerequisites
+### Voraussetzungen
 
-1. **Install Julia 1.11**
+1. **Julia 1.11 installieren**
 
-   The recommended way to install Julia is using [JuliaUp](https://julialang.org/downloads/), which helps manage Julia versions:
+   Die empfohlene Methode zur Installation von Julia ist [JuliaUp](https://julialang.org/downloads/), das die Verwaltung verschiedener Julia-Versionen erleichtert:
 
    ```bash
-   # On Windows (using PowerShell with admin rights):
+   # Unter Windows (PowerShell mit Administratorrechten):
    winget install --name Julia --id 9NJNWW8PVKMN -e -s msstore
 
-   # On Linux/macOS:
+   # Unter Linux/macOS:
    curl -fsSL https://install.julialang.org | sh
    ```
 
-   After installation, you can select Julia 1.11:
-   ```bash
-   juliaup add 1.11
-   juliaup default 1.11
-   ```
+2. **IJulia in deiner globalen Umgebung installieren**
 
-2. **Install IJulia in your global environment**
-
-   Start Julia and run:
+   Starte Julia und führe folgenden code aus, um `IJulia` (die Notebook-Umgebung) zu installieren:
    ```julia
    using Pkg
    Pkg.add("IJulia")
    ```
 
-### Downloading and Running the Workshop Notebook
+### Workshop-Notebook herunterladen und ausführen
 
-1. **Download the latest notebook release**
+1. **Lade die neueste Notebook-Version herunter**
    
-   Go to the [Releases page](../../releases) of this repository and download the latest `notebook.zip` file.
+   Gehe zur [Release-Seite](../../releases) dieses Repositories und lade die neueste `notebook.zip`-Datei herunter.
 
-2. **Extract the zip file** to a location of your choice
+2. **Entpacke die ZIP-Datei** 📦 an einen Ort deiner Wahl
 
-3. **Opening a Terminal/Command Prompt**
+3. **Terminal/Eingabeaufforderung öffnen**
 
    #### Windows:
-   - **Method 1**: Right-click on the Start button and select "Windows Terminal" or "Command Prompt"
-   - **Method 2**: Press `Win + R`, type `cmd` or `powershell`, and press Enter
-   - **Method 3**: In File Explorer, navigate to the extracted folder, then right-click while holding Shift and select "Open PowerShell window here" or "Open command window here"
+   - **Methode 1**: Rechtsklick auf die Schaltfläche Start und wähle "Windows Terminal" oder "Eingabeaufforderung"
+   - **Methode 2**: Drücke `Win + R`, gib `cmd` oder `powershell` ein und drücke Enter
+   - **Methode 3**: Im Datei-Explorer zum entpackten Ordner navigieren, dann mit gedrückter Umschalttaste rechtsklicken und "PowerShell-Fenster hier öffnen" oder "Eingabeaufforderungsfenster hier öffnen" wählen
    
    #### macOS:
-   - Open Spotlight (Cmd + Space) and type "Terminal", then press Enter
-   - Or navigate to Applications > Utilities > Terminal
+   - Öffne Spotlight (Cmd + Leertaste) und gib "Terminal" ein, dann drücke Enter
+   - Oder navigiere zu Programme > Dienstprogramme > Terminal
 
    #### Linux:
-   - Usually Ctrl + Alt + T opens a terminal
-   - Or search for "Terminal" in your application menu
+   - Üblicherweise öffnet Strg + Alt + T ein Terminal
+   - Oder suche nach "Terminal" im Anwendungsmenü
 
-4. **Navigating to the Folder**
+4. **Zum Ordner navigieren**
 
-   Use the `cd` command to navigate to the extracted folder:
+   Verwende den Befehl `cd`, um zum entpackten Ordner zu navigieren:
 
    ```bash
-   # Windows example
-   cd C:\path\to\extracted\notebook
+   # Windows-Beispiel
+   cd C:\pfad\zum\entpackten\notebook
    
-   # macOS/Linux example
-   cd /path/to/extracted/notebook
+   # macOS/Linux-Beispiel
+   cd /pfad/zum/entpackten/notebook
    ```
 
-   Tips for Windows users:
-   - Use `dir` to list files in the current directory
-   - Use `cd ..` to go up one level in the directory tree
-   - You can drag and drop a folder into the terminal window to automatically insert its path
-   - Tab completion will help you navigate: type part of a folder name and press Tab
+   Tipps für Windows-Benutzer:
+   - Verwende `dir`, um Dateien im aktuellen Verzeichnis aufzulisten
+   - Verwende `cd ..`, um eine Ebene im Verzeichnisbaum nach oben zu gehen
+   - Du kannst einen Ordner in das Terminalfenster ziehen, um seinen Pfad automatisch einzufügen
+   - Tab-Vervollständigung hilft bei der Navigation: Gib einen Teil eines Ordnernamens ein und drücke Tab
 
-5. **Starting Julia**
+5. **Julia starten**
 
-   Once you've navigated to the folder:
+   Sobald du zum Ordner navigiert bist:
 
    ```bash
-   # On all platforms
+   # Auf allen Plattformen
    julia --project=@.
    ```
 
-6. **Instantiate the environment**
+6. **Umgebung initialisieren**
 
-   In the Julia REPL (which looks like `julia>`), run:
+   In der Julia-REPL (die wie `julia>` aussieht), führe aus:
    ```julia
    using Pkg
    Pkg.instantiate()
    ```
 
-7. **Start the Jupyter notebook**
+7. **Jupyter-Notebook starten**
 
-   In the same Julia session:
+   In derselben Julia-Sitzung:
    ```julia
    using IJulia
    notebook(dir=".")
    ```
 
-   This will open your default web browser with the Jupyter interface.
+   Dies öffnet deinen Standardbrowser mit der Jupyter-Oberfläche.
 
-8. **Open the workshop notebook**
+8. **Workshop-Notebook öffnen**
    
-   In the Jupyter browser interface that opens, click on `workshop.ipynb` to start the workshop.
+   In der Jupyter-Browseroberfläche klickst du auf `workshop.ipynb`, um den Workshop zu starten.
