@@ -171,6 +171,30 @@ end
 Im nächsten Schritt modifizieren wir unser Netzwerk, indem wir einen Wechselrichter mit 
 Droop-Regelung hinzufügen. Dies demonstriert die Flexibilität von OpPoDyn.jl beim 
 Erstellen und Anpassen von Modellen.
+
+Der Droop-Wechselrichter basiert auf folgenden Gleichungen:
+
+**Leistungsmessung:**
+$P_{meas} = u_r \cdot i_r + u_i \cdot i_i$
+$Q_{meas} = u_r \cdot i_i - u_i \cdot i_r$
+
+**Leistungsfilterung:**
+$\tau \cdot \frac{dP_{filt}}{dt} = P_{meas} - P_{filt}$
+$\tau \cdot \frac{dQ_{filt}}{dt} = Q_{meas} - Q_{filt}$
+
+**Droop-Regelung:**
+$\omega = \omega_0 - K_p \cdot (P_{filt} - P_{set})$
+$V = V_{set} - K_q \cdot (Q_{filt} - Q_{set})$
+
+**Spannungswinkel:**
+$\frac{d\delta}{dt} = \omega - \omega_0$
+
+**Spannungsausgang:**
+$u_r = V \cdot \cos(\delta)$
+$u_i = V \cdot \sin(\delta)$
+
+Diese Gleichungen implementieren eine Frequenz-Wirkleistungs-Kopplung (f-P) und eine Spannungs-Blindleistungs-Kopplung (V-Q),
+die typisch für das Droop-Verfahren ist.
 =#
 vertexms = [nw[VIndex(i)] for i in 1:nv(nw)];
 edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
@@ -254,6 +278,18 @@ end
 
 Als erweitertes Beispiel optimieren wir die Parameter des Wechselrichters, 
 um das Systemverhalten zu verbessern.
+
+Wir definieren eine Verlustfunktion, die die Abweichung zwischen der Original-Systemantwort 
+und der Antwort des modifizierten Systems mit Wechselrichter misst:
+
+$L(p) = \sum_{i,t} |x_{ref}(t)_i - x(t;p)_i|^2$
+
+Wobei:
+- $p = [K_p, K_q, \tau]$ die zu optimierenden Parameter sind
+- $x_{ref}(t)$ die Referenzlösung des ursprünglichen Systems 
+- $x(t;p)$ die Lösung des modifizierten Systems mit den Parametern $p$
+
+Ziel ist es, Parameter $p$ zu finden, die diese Verlustfunktion minimieren.
 =#
 opt_ref = sol(0.3:0.1:10, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
 tunable_parameters = [:inverter₊Kp, :inverter₊Kq, :inverter₊τ]
