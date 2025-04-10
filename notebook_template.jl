@@ -1,9 +1,10 @@
 #=
-# OpPoDyn.jl - A Power System Dynamics Library
-## Introduction
+# OpPoDyn.jl - Eine Bibliothek für Energiesystemdynamik
+## Einführung und Setup
 
-cd("notebook")
-import Pkg; Pkg.activate("notebook")
+In diesem Workshop werden wir mit OpPoDyn.jl arbeiten, einer Julia-Bibliothek zur Simulation 
+und Analyse von dynamischen Vorgängen in Energiesystemen. Wir beginnen mit der Einrichtung 
+unserer Arbeitsumgebung.
 =#
 using WorkshopCompanion
 using OpPoDyn, OpPoDyn.Library
@@ -19,7 +20,10 @@ using CairoMakie, DataFrames, Graphs
 @time nw = WorkshopCompanion.load_39bus()
 
 #=
-## Inspection of Models
+## Inspektion von Modellkomponenten
+
+OpPoDyn.jl basiert auf Komponentenmodellen, die miteinander verknüpft werden, um ein Gesamtsystem zu bilden.
+Schauen wir uns einige dieser Komponenten genauer an.
 =#
 nw[VIndex(30)]
 # also metadata like
@@ -28,8 +32,10 @@ nw[VIndex(30)].metadata[:equations]
 dump_initial_state(nw[VIndex(30)])
 
 #=
-## Solve Powerflow
+## Leistungsflussberechnung
 
+Bevor wir dynamische Simulationen durchführen können, müssen wir zunächst einen stabilen 
+Arbeitspunkt finden. Dies geschieht durch die Leistungsflussberechnung.
 =#
 OpPoDyn.solve_powerflow!(nw)
 
@@ -37,7 +43,10 @@ OpPoDyn.solve_powerflow!(nw)
 dump_initial_state(nw[VIndex(39)])
 
 #=
-## Component Initialization
+## Initialisierung der Komponenten
+
+Nach der Leistungsflussberechnung müssen alle dynamischen Komponenten initialisiert werden,
+damit sie im berechneten Arbeitspunkt im Gleichgewicht sind.
 =#
 
 findall(nw[VIndex(31)].metadata[:observed]) do eq
@@ -63,16 +72,20 @@ set_default!(nw, VIndex(39,:load₊Vset), v39_mag)
 OpPoDyn.initialize!(nw)
 
 #=
-## Define of a Perturbation
+## Definition einer Störung im Netzwerk
 
+Nun definieren wir eine Störung, um die dynamische Reaktion des Systems zu untersuchen.
+Hier simulieren wir einen Kurzschluss auf einer Leitung, gefolgt vom Abschalten dieser Leitung.
 =#
 const cb_verbose = Ref(true)
 _enable_short = ComponentAffect([], [:pibranch₊shortcircuit]) do u, p, ctx
-    cb_verbose[] && @info "Activate short circuit on line $(ctx.src)=>$(ctx.dst) at t = $(ctx.t)"
+    ## Meldung ausgeben wenn Kurzschluss aktiviert wird
+    cb_verbose[] && @info "Aktiviere Kurzschluss auf Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
     p[:pibranch₊shortcircuit] = 1
 end
 _disable_line = ComponentAffect([], [:pibranch₊active]) do u, p, ctx
-    cb_verbose[] && @info "Deactivate line $(ctx.src)=>$(ctx.dst) at t = $(ctx.t)"
+    ## Meldung ausgeben wenn Leitung deaktiviert wird
+    cb_verbose[] && @info "Deaktiviere Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
     p[:pibranch₊active] = 0
 end
 shortcircuit_cb = PresetTimeComponentCallback(0.1, _enable_short)
@@ -86,36 +99,51 @@ nw[EIndex(11)]
 
 
 #=
-## Simulation
+## Dynamische Simulation
+
+Jetzt führen wir die eigentliche Simulation durch, um zu sehen, wie das System auf die 
+definierte Störung reagiert.
 =#
 u0 = NWState(nw)
 prob = ODEProblem(nw, uflat(u0), (0,15), pflat(u0); callback=get_callbacks(nw))
 sol = solve(prob, Rodas5P())
 
 #=
-## Plotting some results
+## Visualisierung der Simulationsergebnisse
+
+Nach der Simulation analysieren wir die Ergebnisse mit verschiedenen Plots.
+
+### Leistungsfluss in der betroffenen Leitung
 =#
 let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Power in affected line")
+    ax = Axis(fig[1, 1]; title="Leistungsfluss in der betroffenen Leitung")
     ts = range(0, 0.28,length=1000)
-    lines!(ax, ts, sol(ts; idxs=EIndex(6, :src₊P)).u; label="P (source end)")
-    lines!(ax, ts, sol(ts; idxs=EIndex(6, :dst₊P)).u; label="P (destination end)")
-    lines!(ax, ts, sol(ts; idxs=@obsex(-EIndex(6, :src₊P)-EIndex(6, :dst₊P))).u; linestyle=:dot, label="P loss")
+    lines!(ax, ts, sol(ts; idxs=EIndex(6, :src₊P)).u; label="P (Quellende)")
+    lines!(ax, ts, sol(ts; idxs=EIndex(6, :dst₊P)).u; label="P (Zielende)")
+    lines!(ax, ts, sol(ts; idxs=@obsex(-EIndex(6, :src₊P)-EIndex(6, :dst₊P))).u; linestyle=:dot, label="P Verlust")
     axislegend(ax)
     fig
 end
 
+#=
+### Spannungen an benachbarten Bussen
+=#
+
 let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Voltage at surrounding buses")
+    ax = Axis(fig[1, 1]; title="Spannungen an benachbarten Bussen")
     ts = range(0, 0.3, length=1000)
-    lines!(ax, ts, sol(ts; idxs=VIndex(3, :busbar₊u_mag)).u; label="u mag at 3")
-    lines!(ax, ts, sol(ts; idxs=VIndex(4, :busbar₊u_mag)).u; label="u mag at 3")
+    lines!(ax, ts, sol(ts; idxs=VIndex(3, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 3")
+    lines!(ax, ts, sol(ts; idxs=VIndex(4, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 4")
     axislegend(ax, position=:rb)
     fig
 end
 
+#=
+### Spannungsbeträge im gesamten Netzwerk
+=#
+
 let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Voltage magnitued everywhere")
+    ax = Axis(fig[1, 1]; title="Spannungsbeträge im gesamten Netzwerk")
     ts = range(0, 15, length=1000)
     for i in 1:39
         lines!(ax, ts, sol(ts; idxs=VIndex(i, :busbar₊u_mag)).u)
@@ -123,9 +151,13 @@ let fig = Figure()
     fig
 end
 
+#=
+### Frequenzen an den Generatoren
+=#
+
 vidxs(nw, 30, "ω")
 let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Frequencies at Generators")
+    ax = Axis(fig[1, 1]; title="Frequenzen an den Generatoren")
     ts = range(0, 15, length=1000)
     for i in 30:39
         lines!(ax, ts, sol(ts; idxs=only(vidxs(nw, i, r"machine₊ω$"))).u)
@@ -134,7 +166,11 @@ let fig = Figure()
 end
 
 #=
-modifying the network
+## Modifikation des Netzwerks - Integration eines Wechselrichters
+
+Im nächsten Schritt modifizieren wir unser Netzwerk, indem wir einen Wechselrichter mit 
+Droop-Regelung hinzufügen. Dies demonstriert die Flexibilität von OpPoDyn.jl beim 
+Erstellen und Anpassen von Modellen.
 =#
 vertexms = [nw[VIndex(i)] for i in 1:nv(nw)];
 edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
@@ -144,30 +180,30 @@ edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
         terminal = Terminal()
     end
     @parameters begin
-        Pset, [description="Active power setpoint", guess=1]
-        Qset, [description="Reactive power setpoint", guess=0]
-        Vset, [description="Voltage setpoint", guess=1]
-        ω₀=1, [description="Nominal frequency"]
-        Kp=1.0, [description="Droop coefficient"]
-        Kq=0.01, [description="Reactive power droop coefficient"]
-        τ = 0.1, [description="Power filter constant"]
+        Pset, [description="Wirkleistungs-Sollwert", guess=1]
+        Qset, [description="Blindleistungs-Sollwert", guess=0]
+        Vset, [description="Spannungs-Sollwert", guess=1]
+        ω₀=1, [description="Nennfrequenz"]
+        Kp=1.0, [description="Wirkleistungs-Droop-Koeffizient"]
+        Kq=0.01, [description="Blindleistungs-Droop-Koeffizient"]
+        τ = 0.1, [description="Zeitkonstante des Leistungsfilters"]
     end
     @variables begin
-        Pmeas(t), [description="Active power measurement", guess=1]
-        Qmeas(t), [description="Reactive power measurement", guess=0]
-        Pfilt(t), [description="Filtered active power", guess=1]
-        Qfilt(t), [description="Filtered reactive power", guess=1]
-        ω(t), [description="Frequency"]
-        δ(t), [description="Voltage angle", guess=0]
-        V(t), [description="Voltage magnitude"]
+        Pmeas(t), [description="Wirkleistungsmessung", guess=1]
+        Qmeas(t), [description="Blindleistungsmessung", guess=0]
+        Pfilt(t), [description="Gefilterte Wirkleistung", guess=1]
+        Qfilt(t), [description="Gefilterte Blindleistung", guess=1]
+        ω(t), [description="Frequenz"]
+        δ(t), [description="Spannungswinkel", guess=0]
+        V(t), [description="Spannungsbetrag"]
     end
     @equations begin
         Pmeas ~ terminal.u_r*terminal.i_r + terminal.u_i*terminal.i_i
         Qmeas ~ terminal.u_r*terminal.i_i - terminal.u_i*terminal.i_r
         τ * Dt(Pfilt) ~ Pmeas - Pfilt
         τ * Dt(Qfilt) ~ Qmeas - Qfilt
-        ω ~ ω₀ - Kp * (Pfilt - Pset) # lower omega when P is higher than setpoint
-        V ~ Vset - Kq * (Qfilt - Qset) # lower voltage when Q is higher than setpoint
+        ω ~ ω₀ - Kp * (Pfilt - Pset) ## Frequenz senken, wenn P höher als Sollwert
+        V ~ Vset - Kq * (Qfilt - Qset) ## Spannung senken, wenn Q höher als Sollwert
         Dt(δ) ~ ω - ω₀
         terminal.u_r ~ V*cos(δ)
         terminal.u_i ~ V*sin(δ)
@@ -195,24 +231,37 @@ dump_initial_state(nw_droop[VIndex(DROOP_IDX)])
 u0_droop = NWState(nw_droop)
 prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
 sol_droop = solve(prob_droop, Rodas5P())
+#=
+## Simulation mit Wechselrichter und Vergleich
+
+Nun simulieren wir das modifizierte Netzwerk und vergleichen die Ergebnisse mit der 
+ursprünglichen Simulation.
+=#
+u0_droop = NWState(nw_droop)
+prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
+sol_droop = solve(prob_droop, Rodas5P())
 let fig = Figure()
     ts = range(0.3, 15, length=1000)
-    ax = Axis(fig[1, 1]; title="Voltage magnitude at Bus $DROOP_IDX")
-    lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Reference Solution", linestyle=:dash)
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Droop Solution")
+    ax = Axis(fig[1, 1]; title="Spannungsbetrag an Bus $DROOP_IDX")
+    lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Referenzlösung", linestyle=:dash)
+    lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Droop-Lösung")
     axislegend(ax)
     fig
 end
 
-break
+#=
+## Parameteroptimierung für den Wechselrichter (fortgeschrittenes Thema)
 
-
+Als erweitertes Beispiel optimieren wir die Parameter des Wechselrichters, 
+um das Systemverhalten zu verbessern.
+=#
 opt_ref = sol(0.3:0.1:10, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
 tunable_parameters = [:inverter₊Kp, :inverter₊Kq, :inverter₊τ]
 tp_idx = SII.parameter_index(sol_droop, VIndex(DROOP_IDX, tunable_parameters))
 
 cb_verbose[] = false
 function loss(p)
+    ## Berechnet die Verlustfunktion für einen gegebenen Parametersatz
     allp = similar(p, length(u0_droop.p))
     allp .= pflat(u0_droop.p)
     allp[tp_idx] .= p
@@ -228,6 +277,7 @@ function loss(p)
 end
 
 function plot_pset(this_p)
+    ## Funktion zum Visualisieren der Systemantwort mit gegebenen Parametern
     if !(this_p isa Observable)
         this_p = Observable(this_p)
     end
@@ -236,25 +286,25 @@ function plot_pset(this_p)
     cols = 2
     rows = ceil(Int, length(busses) / cols)
     ts = range(0, 10, length=1000)
-    # Use parameters from the last optimization state
+    ## Parameter aus dem letzten Optimierungszustand verwenden
     p_opt = @lift let
         _p = copy(pflat(u0_droop))
         _p[tp_idx] .= $this_p
         _p
     end
-    # Create and solve problem with optimized parameters
+    ## Problem mit optimierten Parametern erstellen und lösen
     sol_opt = @lift solve(prob_droop, Rodas5P(); p=$p_opt)
 
     for (i, bus) in enumerate(busses)
         row, col = divrem(i-1, cols) .+ (0, 1)
-        ax = Axis(fig[row+1, col]; title="Bus $bus Voltage Magnitude")
+        ax = Axis(fig[row+1, col]; title="Spannungsbetrag an Bus $bus")
         ylims!(ax, 0.9, 1.15)
         lines!(ax, ts, sol(ts; idxs=VIndex(bus, :busbar₊u_mag)).u;
-               label="Reference", linestyle=:solid, color=:blue)
+               label="Referenz", linestyle=:solid, color=:blue)
         lines!(ax, ts, sol_droop(ts; idxs=VIndex(bus, :busbar₊u_mag)).u;
-               label="Initial Droop", linestyle=:dash, color=:red)
+               label="Initiale Droop-Einstellung", linestyle=:dash, color=:red)
         dat = @lift $sol_opt(ts; idxs=VIndex(bus, :busbar₊u_mag)).u
-        lines!(ax, ts, dat; label="Optimized Droop", color=:green)
+        lines!(ax, ts, dat; label="Optimierte Droop-Einstellung", color=:green)
         i == 1 && axislegend(ax; position=:rb)
     end
     fig
@@ -267,6 +317,7 @@ pobs = Observable(p0)
 plot_pset(pobs)
 states = Any[]
 callback = function (state, l)
+    ## Callback-Funktion für den Optimierungsprozess
     push!(states, state)
     pobs[] = state.u
     println(l)
