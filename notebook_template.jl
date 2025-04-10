@@ -153,7 +153,7 @@ edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
         Qset, [description="Reactive power setpoint", guess=0]
         Vset, [description="Voltage setpoint", guess=1]
         ω₀=1, [description="Nominal frequency"]
-        Kp=0.1, [description="Droop coefficient"]
+        Kp=1.0, [description="Droop coefficient"]
         Kq=0.01, [description="Reactive power droop coefficient"]
         τ = 0.1, [description="Power filter constant"]
     end
@@ -182,20 +182,20 @@ end
 @named inverter = DroopInverter()
 mtkbus = MTKBus(inverter)
 
-pfmodel = vertexms[30].metadata[:pfmodel]
-droopbus = Bus(mtkbus; pf=pfmodel, vidx=30, name=:DroopInverter)
-vertexms[30] = droopbus
+DROOP_IDX = 32
+pfmodel = vertexms[DROOP_IDX].metadata[:pfmodel]
+droopbus = Bus(mtkbus; pf=pfmodel, vidx=DROOP_IDX, name=:DroopInverter)
+vertexms[DROOP_IDX] = droopbus
 
 nw_droop = Network(vertexms, edgems)
-describe_vertices(nw_droop; batch=3:6)
 
 pf = solve_powerflow!(nw_droop)
 set_default!(nw_droop, VIndex(31,:load₊Vset), pf."vm [pu]"[31])
 set_default!(nw_droop, VIndex(39,:load₊Vset), pf."vm [pu]"[39])
-set_default!(nw_droop, VIndex(30,:inverter₊Vset),  pf."vm [pu]"[30])
+set_default!(nw_droop, VIndex(DROOP_IDX,:inverter₊Vset),  pf."vm [pu]"[DROOP_IDX])
 OpPoDyn.initialize!(nw_droop)
 
-dump_initial_state(nw_droop[VIndex(30)])
+dump_initial_state(nw_droop[VIndex(DROOP_IDX)])
 
 u0_droop = NWState(nw_droop)
 # u0_droop.v[30, :inverter₊Kp] = 0.0005
@@ -205,15 +205,15 @@ u0_droop = NWState(nw_droop)
 prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
 sol_droop = solve(prob_droop, Rodas5P())
 let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Frequency at Bus 30")
+    ax = Axis(fig[1, 1]; title="Frequency at Bus $DROOP_IDX")
     ts = range(0.3, 15, length=1000)
-    lines!(ax, ts, sol(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Reference Solution")
-    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Droop Solution")
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :inverter₊ω)).u; label="Droop Solution")
+    lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :ctrld_gen₊machine₊ω)).u; label="Reference Solution")
+    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :ctrld_gen₊machine₊ω)).u; label="Droop Solution")
+    lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :inverter₊ω)).u; label="Droop Solution")
     axislegend(ax; position=:rb)
-    ax = Axis(fig[2, 1]; title="Voltage magnitude at Bus 30")
-    lines!(ax, ts, sol(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Reference Solution", linestyle=:dash)
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Droop Solution")
+    ax = Axis(fig[2, 1]; title="Voltage magnitude at Bus $DROOP_IDX")
+    lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Reference Solution", linestyle=:dash)
+    lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Droop Solution")
     axislegend(ax)
     # display(fig)
     fig
@@ -223,30 +223,30 @@ end
 let fig = Figure()
     # ax = Axis(fig[1, 1]; title="Phase Angle at Bus 30")
     # ts = range(0, 0.28, length=1000)
-    # lines!(ax, ts, sol(ts; idxs=VIndex(30, :busbar₊u_arg)).u; label="Reference Solution")
-    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :busbar₊u_arg)).u; label="Droop Solution")
+    # lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_arg)).u; label="Reference Solution")
+    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_arg)).u; label="Droop Solution")
     # axislegend(ax)
     # ax = Axis(fig[2, 1]; title="Voltage Magnitude at Bus 30")
     # ts = range(0, 0.28, length=1000)
-    # lines!(ax, ts, sol(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Reference Solution")
-    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Droop Solution")
+    # lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Reference Solution")
+    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Droop Solution")
     # axislegend(ax)
     ax = Axis(fig[1, 1]; title="Active power injection at Bus 30")
     ts = range(0, 15, length=1000)
-    lines!(ax, ts, sol(ts; idxs=VIndex(30, :busbar₊P)).u; label="Reference Solution")
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :busbar₊P)).u; label="Droop Solution")
+    lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊P)).u; label="Reference Solution")
+    lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊P)).u; label="Droop Solution")
     axislegend(ax; position=:rb)
     ax = Axis(fig[2, 1]; title="Reactive power injection at Bus 30")
-    lines!(ax, ts, sol(ts; idxs=VIndex(30, :busbar₊Q)).u; label="Reference Solution")
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :busbar₊Q)).u; label="Droop Solution")
+    lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊Q)).u; label="Reference Solution")
+    lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊Q)).u; label="Droop Solution")
     axislegend(ax)
     fig
 end
 let
-    fig, ax, p = lines(sol_droop; idxs=VIndex(30, :inverter₊Pmeas));
-    # lines!(sol_droop; idxs=VIndex(30, :inverter₊Pfilt))
+    fig, ax, p = lines(sol_droop; idxs=VIndex(DROOP_IDX, :inverter₊Pmeas));
+    # lines!(sol_droop; idxs=VIndex(DROOP_IDX, :inverter₊Pfilt))
     ax = Axis(fig[2, 1]; title="frequency")
-    lines!(ax, sol_droop; idxs=VIndex(30, :inverter₊ω))
+    lines!(ax, sol_droop; idxs=VIndex(DROOP_IDX, :inverter₊ω))
     fig
 end
 # inspect(sol_droop)
@@ -262,8 +262,8 @@ using Optimization, OptimizationPolyalgorithms
 
 # sol(1:0.1:15, idxs=vidxs(sol_droop, 1:39, [:busbar₊u_r, :busbar₊u_i]))
 # opt_ref = sol(1:0.1:15, idxs=vidxs(sol_droop, 1:39, [:busbar₊u_r, :busbar₊u_i]))
-# opt_ref = sol(0.3:0.1:15, idxs=[VIndex(30, :busbar₊u_mag), VIndex(30, :ctrld_gen₊machine₊ω)])
-opt_ref = sol(0.3:0.1:5, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
+# opt_ref = sol(0.3:0.1:15, idxs=[VIndex(DROOP_IDX, :busbar₊u_mag), VIndex(DROOP_IDX, :ctrld_gen₊machine₊ω)])
+opt_ref = sol(0.3:0.1:10, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
 # opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_mag)])
 # opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_mag), VIndex(1:39, :busbar₊u_arg)])
 # lines(opt_ref.u)
@@ -271,7 +271,7 @@ opt_ref = sol(0.3:0.1:5, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar
 
 tunable_parameters = [:inverter₊Kp, :inverter₊Kq, :inverter₊τ]
 # tunable_parameters = [:ctrld_gen₊machine₊H]
-tp_idx = SII.parameter_index(sol_droop, VIndex(30,tunable_parameters))
+tp_idx = SII.parameter_index(sol_droop, VIndex(DROOP_IDX, tunable_parameters))
 # _prob_droop_nocb = remake(prob_droop, callback=nothing)
 
 cb_verbose[] = false
@@ -291,8 +291,8 @@ function loss(p)
         return Inf
     end
     # let
-    #     fig, ax, p =lines(_sol; idxs=VIndex(30, :busbar₊u_mag))
-    #     lines!(sol; idxs=VIndex(30, :busbar₊u_mag))
+    #     fig, ax, p =lines(_sol; idxs=VIndex(DROOP_IDX, :busbar₊u_mag))
+    #     lines!(sol; idxs=VIndex(DROOP_IDX, :busbar₊u_mag))
     #     fig
     # end
     # l = zero(eltype(p))
@@ -304,15 +304,15 @@ function loss(p)
     #=
     let
         fig, ax, p = lines(opt_ref.u)
-        lines!(_sol(opt_ref.t; idxs=VIndex(30, :busbar₊u_mag)).u)
+        lines!(_sol(opt_ref.t; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u)
         fig
     end
     =#
-    # x = _sol(opt_ref.t; idxs=[VIndex(30, :busbar₊u_mag), VIndex(30, :inverter₊ω)])
+    # x = _sol(opt_ref.t; idxs=[VIndex(DROOP_IDX, :busbar₊u_mag), VIndex(DROOP_IDX, :inverter₊ω)])
     x = _sol(opt_ref.t; idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
     # x = _sol(opt_ref.t; idxs=[VIndex(1:39, :busbar₊u_mag)])
     res = opt_ref.u - x.u
-    # res = _sol(_sol.t; idxs=VIndex(30, :busbar₊u_mag)).u
+    # res = _sol(_sol.t; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u
     l = sum(abs2, reduce(vcat, res))
     # l = sum(abs2, _sol)
     # l = sum(_sol[3])
@@ -335,7 +335,7 @@ end
 # _sol[1]
 # zip(_sol.t
 #     opt_ref
-#     res = _sol(_sol.t; idxs=VIndex(30, :busbar₊u_mag)).u
+#     res = _sol(_sol.t; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u
 
 # @time ForwardDiff.gradient(loss, [0.0005, -0.04, 0.01])
 # @time ForwardDiff.gradient(loss, states[begin].u)
@@ -343,7 +343,7 @@ end
 # @time ReverseDiff.gradient(loss, [0.0005, -0.04, 0.01])
 # @time Zygote.gradient(loss, [0.0005, -0.04, 0.01])
 
-p0 = sol_droop(sol_droop.t[begin], idxs=collect(VIndex(30, tunable_parameters)))
+p0 = sol_droop(sol_droop.t[begin], idxs=collect(VIndex(DROOP_IDX, tunable_parameters)))
 # p0 = [2.0]
 optf = Optimization.OptimizationFunction((x, p) -> loss(x), Optimization.AutoForwardDiff())
 optprob = Optimization.OptimizationProblem(optf, p0; callback)
@@ -351,52 +351,48 @@ optprob = Optimization.OptimizationProblem(optf, p0; callback)
 # optsol = Optimization.solve(optprob, PolyOpt(), maxiters = 2)
 # optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Descent(0.01), maxiters = 20)
 # optprob = Optimization.OptimizationProblem(optf, [0.00025493630685228006, -0.030257386775788278, 0.0006679488509453074]; callback)
-optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Adam(0.1), maxiters = 30)
+optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Adam(0.1), maxiters = 12)
 
-
-loss(sol_droop.prob.p[tp_idx])
-loss(states[end].u)
-scatter(losses)
-
-CairoMakie.activate!()
-# busses = [3,4,7,8,12,15,16,18,20,21,23,24,25,26,27,28,29,30]
-busses = [3,4,25,30]
+# CairoMakie.activate!()
+# busses = [3,4,7,8,12,15,16,18,20,21,23,24,25,26,27,28,29,DROOP_IDX]
 si = length(states)
-let
-    fig = Figure(size=(1000,600))
+function plot_pset(this_p, fig=Figure(size=(1000,500)))
+    empty!(fig)
+    busses = [3,4,25,DROOP_IDX]
     cols = 2
     rows = ceil(Int, length(busses) / cols)
-    ts = range(0, 15, length=1000)
-
+    ts = range(0, 10, length=1000)
     # Use parameters from the last optimization state
     p_opt = copy(pflat(u0_droop))
-    p_opt[tp_idx] .= states[si].u
+    p_opt[tp_idx] .= this_p
     # Create and solve problem with optimized parameters
     sol_opt = solve(prob_droop, Rodas5P(); p=p_opt)
     
     for (i, bus) in enumerate(busses)
         row, col = divrem(i-1, cols) .+ (0, 1)
         ax = Axis(fig[row+1, col]; title="Bus $bus Voltage Magnitude")
-        ylims!(ax, 0.9, nothing)
-        
-        # Plot reference solution
+        ylims!(ax, 0.9, 1.15)
         lines!(ax, ts, sol(ts; idxs=VIndex(bus, :busbar₊u_mag)).u; 
                label="Reference", linestyle=:solid, color=:blue)
-        
-        # Plot droop solution with initial parameters
         lines!(ax, ts, sol_droop(ts; idxs=VIndex(bus, :busbar₊u_mag)).u; 
                label="Initial Droop", linestyle=:dash, color=:red)
-        
-        # plot droop solution with optimized parameters
         lines!(ax, ts, sol_opt(ts; idxs=VIndex(bus, :busbar₊u_mag)).u; 
                 label="Optimized Droop", color=:green)
-        
-        # Only add legend to the first plot to avoid clutter
         i == 1 && axislegend(ax; position=:rb)
     end
-    
     fig
 end
+plot_pset(states[end].u)
+
+# NetworkDynamicsInspector.WGLMakie.activate!()
+CairoMakie.activate!()
+fig = Figure(size=(1000,500));
+record(fig, "droop_optimization.mp4", states; framerate=3) do s
+    plot_pset(s.u, fig)
+    fig
+end
+
+
 
 inspect(sol_droop)
 
@@ -418,7 +414,7 @@ optsol
 loss([1.811])
 loss([2.0])
 loss([4.2])
-nw[VIndex(30)]
+nw[VIndex(DROOP_IDX)]
 
 
 
