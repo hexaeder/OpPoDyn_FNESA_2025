@@ -154,7 +154,7 @@ edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
         Vset, [description="Voltage setpoint", guess=1]
         ω₀=1, [description="Nominal frequency"]
         Kp=0.1, [description="Droop coefficient"]
-        Kq=0.1, [description="Reactive power droop coefficient"]
+        Kq=0.01, [description="Reactive power droop coefficient"]
         τ = 0.1, [description="Power filter constant"]
     end
     @variables begin
@@ -198,36 +198,25 @@ OpPoDyn.initialize!(nw_droop)
 dump_initial_state(nw_droop[VIndex(30)])
 
 u0_droop = NWState(nw_droop)
-u0_droop.v[30, :inverter₊Kp] = 0.0005
-u0_droop.v[30, :inverter₊Kq] = -0.04
-u0_droop.v[30, :inverter₊τ] = 0.01
+# u0_droop.v[30, :inverter₊Kp] = 0.0005
+# u0_droop.v[30, :inverter₊Kq] = -0.04
+# u0_droop.v[30, :inverter₊τ] = 0.01
 
-
-for i in 1:length(states)
-    u0_droop.v[30, :inverter₊Kp] = states[end].u[1]
-    u0_droop.v[30, :inverter₊Kq] = states[end].u[2]
-    u0_droop.v[30, :inverter₊τ] = states[end].u[3]
-    # u0_droop.v[30, :ctrld_gen₊machine₊H] = 4.0
-    prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
-    sol_droop = solve(prob_droop, Rodas5P())
-    let fig = Figure()
-        ax = Axis(fig[1, 1]; title="Frequency at Bus 30")
-        ts = range(0.3, 15, length=1000)
-        lines!(ax, ts, sol(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Reference Solution")
-        # lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Droop Solution")
-        lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :inverter₊ω)).u; label="Droop Solution")
-        axislegend(ax; position=:rb)
-        ax = Axis(fig[2, 1]; title="Voltage magnitude at Bus 30")
-        c = 1
-        for N = 6:10
-            lines!(ax, ts, sol(ts; idxs=VIndex(N, :busbar₊u_mag)).u; label="Reference Solution", color=Cycled(c), linestyle=:dash)
-            lines!(ax, ts, sol_droop(ts; idxs=VIndex(N, :busbar₊u_mag)).u; label="Droop Solution",color=Cycled(c))
-            c +=1
-        end
-        axislegend(ax)
-        # display(fig)
-        fig
-    end
+prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
+sol_droop = solve(prob_droop, Rodas5P())
+let fig = Figure()
+    ax = Axis(fig[1, 1]; title="Frequency at Bus 30")
+    ts = range(0.3, 15, length=1000)
+    lines!(ax, ts, sol(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Reference Solution")
+    # lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :ctrld_gen₊machine₊ω)).u; label="Droop Solution")
+    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :inverter₊ω)).u; label="Droop Solution")
+    axislegend(ax; position=:rb)
+    ax = Axis(fig[2, 1]; title="Voltage magnitude at Bus 30")
+    lines!(ax, ts, sol(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Reference Solution", linestyle=:dash)
+    lines!(ax, ts, sol_droop(ts; idxs=VIndex(30, :busbar₊u_mag)).u; label="Droop Solution")
+    axislegend(ax)
+    # display(fig)
+    fig
 end
 
 
@@ -274,7 +263,7 @@ using Optimization, OptimizationPolyalgorithms
 # sol(1:0.1:15, idxs=vidxs(sol_droop, 1:39, [:busbar₊u_r, :busbar₊u_i]))
 # opt_ref = sol(1:0.1:15, idxs=vidxs(sol_droop, 1:39, [:busbar₊u_r, :busbar₊u_i]))
 # opt_ref = sol(0.3:0.1:15, idxs=[VIndex(30, :busbar₊u_mag), VIndex(30, :ctrld_gen₊machine₊ω)])
-opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
+opt_ref = sol(0.3:0.1:5, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
 # opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_mag)])
 # opt_ref = sol(0.3:0.1:15, idxs=[VIndex(1:39, :busbar₊u_mag), VIndex(1:39, :busbar₊u_arg)])
 # lines(opt_ref.u)
@@ -293,7 +282,7 @@ function loss(p)
     allp .= pflat(u0_droop.p)
     allp[tp_idx] .= p
     _sol = solve(prob_droop, Rodas5P(autodiff=true); p = allp, saveat = 0.01,
-        initializealg = SciMLBase.NoInit(),
+        initializealg = SciMLBase.NoInit(), tspan=(0.0, opt_ref.t[end]),
         # sensealg = InterpolatingAdjoint(; autojacvec=ReverseDiffVJP()),
         # sensealg = InterpolatingAdjoint(; autojacvec=true),
         # sensealg = GaussAdjoint(; autojacvec=true),
@@ -342,6 +331,7 @@ callback = function (state, l)
     return false
 end
 
+
 # _sol[1]
 # zip(_sol.t
 #     opt_ref
@@ -357,17 +347,23 @@ p0 = sol_droop(sol_droop.t[begin], idxs=collect(VIndex(30, tunable_parameters)))
 # p0 = [2.0]
 optf = Optimization.OptimizationFunction((x, p) -> loss(x), Optimization.AutoForwardDiff())
 optprob = Optimization.OptimizationProblem(optf, p0; callback)
+# optprob = Optimization.OptimizationProblem(optf, states[end].u; callback)
 # optsol = Optimization.solve(optprob, PolyOpt(), maxiters = 2)
 # optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Descent(0.01), maxiters = 20)
 # optprob = Optimization.OptimizationProblem(optf, [0.00025493630685228006, -0.030257386775788278, 0.0006679488509453074]; callback)
-optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Adam(0.01), maxiters = 100)
+optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Adam(0.1), maxiters = 30)
 
-describe_vertices(extract_nw(prob_droop))
 
-busses = [3,4,7,8,15,16]
+loss(sol_droop.prob.p[tp_idx])
+loss(states[end].u)
+scatter(losses)
+
+CairoMakie.activate!()
+# busses = [3,4,7,8,12,15,16,18,20,21,23,24,25,26,27,28,29,30]
+busses = [3,4,25,30]
 si = length(states)
 let
-    fig = Figure(size=(1000,700))
+    fig = Figure(size=(1000,600))
     cols = 2
     rows = ceil(Int, length(busses) / cols)
     ts = range(0, 15, length=1000)
@@ -381,7 +377,6 @@ let
     for (i, bus) in enumerate(busses)
         row, col = divrem(i-1, cols) .+ (0, 1)
         ax = Axis(fig[row+1, col]; title="Bus $bus Voltage Magnitude")
-        # ylims!(0.90,1.1)
         ylims!(ax, 0.9, nothing)
         
         # Plot reference solution
@@ -402,6 +397,8 @@ let
     
     fig
 end
+
+inspect(sol_droop)
 
 
 # optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.PolyOpt(), maxiters = 20)
