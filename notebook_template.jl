@@ -14,7 +14,7 @@ using ModelingToolkit
 using ModelingToolkit: D_nounits as Dt, t_nounits as t
 using OrdinaryDiffEqRosenbrock, OrdinaryDiffEqNonlinearSolve, DiffEqCallbacks
 using SciMLSensitivity, Optimization, OptimizationOptimisers
-using LinearAlge
+using LinearAlgebra
 using CairoMakie, DataFrames, Graphs
 
 @time nw = WorkshopCompanion.load_39bus()
