@@ -13,8 +13,8 @@ using NetworkDynamics: SII
 using ModelingToolkit
 using ModelingToolkit: D_nounits as Dt, t_nounits as t
 using OrdinaryDiffEqRosenbrock, OrdinaryDiffEqNonlinearSolve, DiffEqCallbacks
-using SciMLSensitivity, Optimization, Optimisers
-using LinearAlgebra
+using SciMLSensitivity, Optimization, OptimizationOptimisers
+using LinearAlge
 using CairoMakie, DataFrames, Graphs
 
 @time nw = WorkshopCompanion.load_39bus()
