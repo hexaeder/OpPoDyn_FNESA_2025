@@ -360,12 +360,10 @@ callback = function (state, l)
     return false
 end
 optprob = Optimization.OptimizationProblem(optf, p0; callback)
-optsol = Optimization.solve(optprob, OptimizationPolyalgorithms.Optimisers.Adam(0.1), maxiters = 7)
+optsol = Optimization.solve(optprob, Optimisers.Adam(0.1), maxiters = 7)
 
 fig = plot_pset(pobs)
 record(fig, "droop_optimization.mp4", states; framerate=3) do s
     pobs[] = s.u
     fig
 end
-
-inspect(sol_droop)
