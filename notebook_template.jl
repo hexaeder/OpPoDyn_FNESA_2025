@@ -20,15 +20,15 @@ using CairoMakie, DataFrames, Graphs
 #=
 ## Laden des Netzwerks
 
-Das zu simulierende ieee 39-Bus Netzwerk ist im `WorkshopCompanion` Paket definiert,
+Das zu simulierende IEEE 39-Bus-Netzwerk ist im `WorkshopCompanion`-Paket definiert,
 da es hier den Rahmen sprengen würde.
 
-Es handelt sich um ein 39-Bus System mit 10 Generatoren und 19 Lasten (2 davon an Generator Bussen).
+Es handelt sich um ein 39-Bus-System mit 10 Generatoren und 19 Lasten (2 davon an Generator-Bussen).
 
 Es kommen folgende Modelle zum Einsatz:
-- Generatoren: 6th Order Sauer-Pai-Machine Model mit Gov (TGOV1) und AVR (IEEEType1)
+- Generatoren: 6th Order Sauer-Pai-Machine-Model mit Gov (TGOV1) und AVR (IEEEType1)
 - Lasten: ZIP-Lasten
-- Statische PI Lines als Übertragungsleitungen
+- Statische PI-Lines als Übertragungsleitungen
 =#
 @time nw = WorkshopCompanion.load_39bus()
 
@@ -55,7 +55,7 @@ Arbeitspunkt finden. Dies geschieht durch die Leistungsflussberechnung.
 OpPoDyn.solve_powerflow!(nw)
 
 #=
-Der Leistungsfluss bestimmt die "interface variables" unserer dynamischen
+Der Leistungsfluss bestimmt die "Interface-Variablen" unserer dynamischen
 Simulation, das heißt die Spannungen aller Busse und die Ströme aller Leitungen.
 =#
 
@@ -66,19 +66,19 @@ Durch die Leistungsflussberechnung kennen wir den Arbeitspunkt unseres Netzwerks
 Um dynamische Simulationen durchführen zu können, müssen wir alle dynamischen Komponenten
 initialisieren.
 
-Initialisieren bedeutet in diesem Fall, das sich die dynamischen Modelle im
+Initialisieren bedeutet in diesem Fall, dass sich die dynamischen Modelle im
 Arbeitspunkt in einem Gleichgewichtszustand befinden.
 
-Wenn wir uns einen z.b. den Zustand eines generators anschauen, sehen wir, dass
+Wenn wir uns z.B. den Zustand eines Generators anschauen, sehen wir, dass
 einige interne Zustände und Parameter noch nicht festgelegt sind.
 =#
 
 dump_initial_state(nw[VIndex(39)]; obs=false)
 
 #=
-Wir lösen dieses problem, in dem wir die "interface" Variablen Strom und Spannung
-aus der Leistungsflussberechnung verwenden, und freie interne zustände $x$ und freie
-interne parameter $p$ so wählen, das folgende Gleichungen erfüllt sind:
+Wir lösen dieses Problem, indem wir die "Interface"-Variablen Strom und Spannung
+aus der Leistungsflussberechnung verwenden und freie interne Zustände $x$ und freie
+interne Parameter $p$ so wählen, dass folgende Gleichungen erfüllt sind:
 
 $$
 \begin{aligned}
@@ -93,20 +93,20 @@ OpPoDyn.initialize!(nw)
 #=
 ## Definition einer Störung im Netzwerk
 
-Prinzipiell sind wir jetzt soweit eine dynamische Simulation durchzuführen.
-Allerdings haben wir die internen zustände und parameter gerade so gewählt, dass sich
-das dynamische system in einem Gleichgewichtszustand befindet, d.h. es passiert nichts.
+Prinzipiell sind wir jetzt soweit, eine dynamische Simulation durchzuführen.
+Allerdings haben wir die internen Zustände und Parameter gerade so gewählt, dass sich
+das dynamische System in einem Gleichgewichtszustand befindet, d.h. es passiert nichts.
 
-Um dynamik zu sehen, muss das System angeregt bzw. gestört werden.
-Verschiedene Störungen kommen infrage, z.B.
-- Abschalten einer Leitung (n-1 Kriterium)
+Um Dynamik zu sehen, muss das System angeregt bzw. gestört werden.
+Verschiedene Störungen kommen infrage, z.B.:
+- Abschalten einer Leitung (n-1-Kriterium)
 - Änderung einer Last
 - Kurzschluss einer Leitung
 - Abschalten eines Generators
 
 Für diesen Workshop fokussieren wir uns auf den **Kurzschluss einer Leitung**.
-Der Kurzschluss tritt entlang einer Leitung auf und wird nach 0.1 Sekunden
-"behoben", in dem die Leitung abgeschaltet wird.
+Der Kurzschluss tritt entlang einer Leitung auf und wird nach 0,1 Sekunden
+"behoben", indem die Leitung abgeschaltet wird.
 
 Zu diesem Zweck hat unsere Leitung zwei zusätzliche interne Parameter:
 - `pibranch₊shortcircuit`: Dieser Parameter wird auf 1 gesetzt, wenn ein Kurzschluss auftritt.
@@ -115,7 +115,7 @@ Zu diesem Zweck hat unsere Leitung zwei zusätzliche interne Parameter:
 AFFECTED_LINE = 11
 nw[EIndex(AFFECTED_LINE)]
 #=
-Wir definieren sogenannte "Callbacks", um währen der dynamischen Simulation zu vorgegebenen
+Wir definieren sogenannte "Callbacks", um während der dynamischen Simulation zu vorgegebenen
 Zeitpunkten diese Parameter zu ändern.
 =#
 _enable_short = ComponentAffect([], [:pibranch₊shortcircuit]) do u, p, ctx
@@ -133,15 +133,15 @@ end
 deactivate_cb = PresetTimeComponentCallback(0.2, _disable_line)
 
 #=
-Diese Störungen, müssen wir nun einer Leitung zuweisen.
+Diese Störungen müssen wir nun einer Leitung zuweisen.
 =#
 set_callback!(nw, EIndex(AFFECTED_LINE),
     (shortcircuit_cb, deactivate_cb)
 );
 
 #=
-Wir können erneut das entsprechende Line Modell inspizieren, um den
-hinzugefügten callback zu sehen.
+Wir können erneut das entsprechende Line-Modell inspizieren, um den
+hinzugefügten Callback zu sehen.
 =#
 nw[EIndex(AFFECTED_LINE)]
 
@@ -253,7 +253,7 @@ die typisch für das Droop-Verfahren ist.
 
 ## Definition einer neuen, dynamischen Netzwerkkomponente
 
-Netzwerkcomponenten in OpPoDyn müssen dem sogenanten "Injector Interface" entsprechen.
+Netzwerkkomponenten in OpPoDyn müssen dem sogenannten "Injector Interface" entsprechen.
 Ein "Injector" ist ein "Einspeiser", also ein System mit einem `Terminal`.
 ```
       ┌───────────┐
@@ -263,7 +263,7 @@ Ein "Injector" ist ein "Einspeiser", also ein System mit einem `Terminal`.
       └───────────┘
 ```
 
-Die Definition eines neuen Einspeisers erfolgt Gleichungsbasiert, die Syntax ähnelt hierbei
+Die Definition eines neuen Einspeisers erfolgt gleichungsbasiert, die Syntax ähnelt hierbei
 Modelica.
 =#
 @mtkmodel DroopInverter begin
@@ -304,8 +304,8 @@ end;
 #=
 ## Definition eines neuen Busses
 
-Ein Bus-Modell verein potentiell mehreren Injectors, beispielsweise ein Generator und ein Wechselrichter.
-Im allgemeinen, besteht er aus einer `BusBar` und mehreren Injektoren.
+Ein Bus-Modell vereint potentiell mehrere Injectors, beispielsweise einen Generator und einen Wechselrichter.
+Im Allgemeinen besteht er aus einer `BusBar` und mehreren Injektoren.
 
 ```
  ┌───────────────────────────────────┐
@@ -319,7 +319,7 @@ Im allgemeinen, besteht er aus einer `BusBar` und mehreren Injektoren.
  └───────────────────────────────────┘
 ```
 
-In unserem fallhaben wir nur einen Injektor, den Wechselrichter.
+In unserem Fall haben wir nur einen Injektor, den Wechselrichter.
 =#
 @named inverter = DroopInverter()
 mtkbus = MTKBus(inverter)
@@ -328,7 +328,7 @@ Bus(mtkbus)
 #=
 ## Aufbau eines Netzwerks mit Droop-Wechselrichter
 
-Um den neuen Bus ins Netzwerk einzubauen, erzeugen wir ein neues Netzwerk auf basis des bisherigen:
+Um den neuen Bus ins Netzwerk einzubauen, erzeugen wir ein neues Netzwerk auf Basis des bisherigen:
 =#
 
 DROOP_IDX = 32
@@ -340,9 +340,9 @@ vertexms[DROOP_IDX] = droopbus
 nw_droop = Network(vertexms, edgems)
 
 #=
-Für dieses neue modell müssen wir die selben Initialisierungsschritte durchlaufen:
-- lösen des Leistungsflusses und
-- initialisierung der dynamischen Komponenten anhand des Leistungsfluss ergebnisses.
+Für dieses neue Modell müssen wir die gleichen Initialisierungsschritte durchlaufen:
+- Lösen des Leistungsflusses und
+- Initialisierung der dynamischen Komponenten anhand des Leistungsfluss-Ergebnisses.
 =#
 
 pf = solve_powerflow!(nw_droop)
@@ -390,7 +390,7 @@ end
 Als erweitertes Beispiel optimieren wir die Parameter des Wechselrichters,
 um das Systemverhalten zu verbessern.
 
-Wir definieren eine Lossfunction, die die Abweichung zwischen der Original-Systemantwort
+Wir definieren eine Verlustfunktion (Loss function), die die Abweichung zwischen der Original-Systemantwort
 und der Antwort des modifizierten Systems mit Wechselrichter misst:
 
 $$
@@ -439,7 +439,7 @@ optsol = Optimization.solve(optprob, Optimisers.Adam(0.1), maxiters = 7)
 #=
 ## Analyse des optimierten Modells
 
-Als letzten schritt wollen wir die Ergebnisse der Optimierung anschauen.
+Als letzten Schritt wollen wir die Ergebnisse der Optimierung anschauen.
 =#
 pobs = Observable(p0)
 function plot_pset(this_p)
