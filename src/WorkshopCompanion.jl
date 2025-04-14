@@ -14,6 +14,9 @@ using PrecompileTools
 using WGLMakie
 using LinearAlgebra
 
+export VERBOSE
+const VERBOSE = Ref(true)
+
 function load_39bus()
     ####
     #### Component Models

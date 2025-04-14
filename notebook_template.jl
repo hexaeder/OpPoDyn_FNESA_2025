@@ -119,7 +119,7 @@ Wir definieren sogenannte "Callbacks", um währen der dynamischen Simulation zu 
 Zeitpunkten diese Parameter zu ändern.
 =#
 _enable_short = ComponentAffect([], [:pibranch₊shortcircuit]) do u, p, ctx
-    @info "Aktiviere Kurzschluss auf Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
+    VERBOSE[] && @info "Aktiviere Kurzschluss auf Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
     p[:pibranch₊shortcircuit] = 1
 end
 shortcircuit_cb = PresetTimeComponentCallback(0.1, _enable_short)
@@ -127,7 +127,7 @@ shortcircuit_cb = PresetTimeComponentCallback(0.1, _enable_short)
 #-
 
 _disable_line = ComponentAffect([], [:pibranch₊active]) do u, p, ctx
-    @info "Deaktiviere Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
+    VERBOSE[] && @info "Deaktiviere Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
     p[:pibranch₊active] = 0
 end
 deactivate_cb = PresetTimeComponentCallback(0.2, _disable_line)
@@ -195,6 +195,11 @@ let fig = Figure()
 end
 
 #=
+Interaktive Visualisierung
+=#
+## inspect(sol, restart=true)
+
+#=
 ## Modifikation des Netzwerks - Integration eines Wechselrichters
 
 Im nächsten Schritt modifizieren wir unser Netzwerk, indem wir einen Wechselrichter mit 
@@ -212,26 +217,54 @@ Q_{meas} &= u_r \cdot i_i - u_i \cdot i_r
 $$
 
 **Leistungsfilterung:**
-$\tau \cdot \frac{dP_{filt}}{dt} = P_{meas} - P_{filt}$
-$\tau \cdot \frac{dQ_{filt}}{dt} = Q_{meas} - Q_{filt}$
+$$
+\begin{aligned}
+\tau \cdot \frac{dP_{filt}}{dt} &= P_{meas} - P_{filt} \\
+\tau \cdot \frac{dQ_{filt}}{dt} &= Q_{meas} - Q_{filt}
+\end{aligned}
+$$
 
 **Droop-Regelung:**
-$\omega = \omega_0 - K_p \cdot (P_{filt} - P_{set})$
-$V = V_{set} - K_q \cdot (Q_{filt} - Q_{set})$
+$$
+\begin{aligned}
+\omega &= \omega_0 - K_p \cdot (P_{filt} - P_{set}) \\
+V &= V_{set} - K_q \cdot (Q_{filt} - Q_{set})
+\end{aligned}
+$$
 
 **Spannungswinkel:**
-$\frac{d\delta}{dt} = \omega - \omega_0$
+$$
+\begin{aligned}
+\frac{d\delta}{dt} &= \omega - \omega_0
+\end{aligned}
+$$
 
 **Spannungsausgang:**
-$u_r = V \cdot \cos(\delta)$
-$u_i = V \cdot \sin(\delta)$
+$$
+\begin{aligned}
+u_r &= V \cdot \cos(\delta) \\
+u_i &= V \cdot \sin(\delta)
+\end{aligned}
+$$
 
 Diese Gleichungen implementieren eine Frequenz-Wirkleistungs-Kopplung (f-P) und eine Spannungs-Blindleistungs-Kopplung (V-Q),
 die typisch für das Droop-Verfahren ist.
-=#
-vertexms = [nw[VIndex(i)] for i in 1:nv(nw)];
-edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
 
+## Definition einer neuen, dynamischen Netzwerkkomponente
+
+Netzwerkcomponenten in OpPoDyn müssen dem sogenanten "Injector Interface" entsprechen.
+Ein "Injector" ist ein "Einspeiser", also ein System mit einem `Terminal`.
+```
+      ┌───────────┐
+(t)   │           │
+ o←───┤  Injector │
+      │           │
+      └───────────┘
+```
+
+Die Definition eines neuen Einspeisers erfolgt Gleichungsbasiert, die Syntax ähnelt hierbei
+Modelica.
+=#
 @mtkmodel DroopInverter begin
     @components begin
         terminal = Terminal()
@@ -267,42 +300,84 @@ edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
     end
 end
 
+#=
+## Definition eines neuen Busses
+
+Ein Bus-Modell verein potentiell mehreren Injectors, beispielsweise ein Generator und ein Wechselrichter.
+Im allgemeinen, besteht er aus einer `BusBar` und mehreren Injektoren.
+
+```
+ ┌───────────────────────────────────┐
+ │ MTKBus             ┌───────────┐  │
+ │  ┌──────────┐   ┌──┤ Generator │  │
+ │  │          │   │  └───────────┘  │
+ │  │  BusBar  ├───o                 │
+ │  │          │   │  ┌───────────┐  │
+ │  └──────────┘   └──┤ Load      │  │
+ │                    └───────────┘  │
+ └───────────────────────────────────┘
+```
+
+In unserem fallhaben wir nur einen Injektor, den Wechselrichter.
+=#
 @named inverter = DroopInverter()
 mtkbus = MTKBus(inverter)
+Bus(mtkbus)
+
+#=
+Um den neuen Bus ins Netzwerk einzubauen, erzeugen wir ein neues Netzwerk auf basis des bisherigen:
+=#
 
 DROOP_IDX = 32
+vertexms = [nw[VIndex(i)] for i in 1:nv(nw)];
+edgems = [nw[EIndex(i)] for i in 1:ne(nw)];
 pfmodel = vertexms[DROOP_IDX].metadata[:pfmodel]
 droopbus = Bus(mtkbus; pf=pfmodel, vidx=DROOP_IDX, name=:DroopInverter)
 vertexms[DROOP_IDX] = droopbus
-
 nw_droop = Network(vertexms, edgems)
 
+#=
+Für dieses neue modell müssen wir die selben Initialisierungsschritte durchlaufen:
+- lösen des Leistungsflusses und
+- initialisierung der dynamischen Komponenten anhand des Leistungsfluss ergebnisses.
+=#
+
 pf = solve_powerflow!(nw_droop)
-set_default!(nw_droop, VIndex(31,:load₊Vset), pf."vm [pu]"[31])
-set_default!(nw_droop, VIndex(39,:load₊Vset), pf."vm [pu]"[39])
 set_default!(nw_droop, VIndex(DROOP_IDX,:inverter₊Vset),  pf."vm [pu]"[DROOP_IDX])
 OpPoDyn.initialize!(nw_droop)
 
-dump_initial_state(nw_droop[VIndex(DROOP_IDX)])
-
-u0_droop = NWState(nw_droop)
-prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
-sol_droop = solve(prob_droop, Rodas5P())
 #=
-## Simulation mit Wechselrichter und Vergleich
+Wie auch bisher können wir die initialisierten Zustände inspizieren.
+=#
+dump_initial_state(nw_droop[VIndex(DROOP_IDX)]; obs=false)
+
+#=
+## Simulation des Models mit Wechselrichter
 
 Nun simulieren wir das modifizierte Netzwerk und vergleichen die Ergebnisse mit der 
 ursprünglichen Simulation.
 =#
 u0_droop = NWState(nw_droop)
 prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_droop)); callback=get_callbacks(nw_droop))
-sol_droop = solve(prob_droop, Rodas5P())
-let fig = Figure()
-    ts = range(0.3, 15, length=1000)
-    ax = Axis(fig[1, 1]; title="Spannungsbetrag an Bus $DROOP_IDX")
-    lines!(ax, ts, sol(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Referenzlösung", linestyle=:dash)
-    lines!(ax, ts, sol_droop(ts; idxs=VIndex(DROOP_IDX, :busbar₊u_mag)).u; label="Droop-Lösung")
-    axislegend(ax)
+sol_droop = solve(prob_droop, Rodas5P());
+
+#=
+## Vergleich der Simulation mit Wechselrichter und mit Generator
+=#
+let
+    fig = Figure(size=(1000,500))
+    busses = [3,4,25,DROOP_IDX]
+    ts = range(0, 10, length=1000)
+    for (i, bus) in enumerate(busses)
+        row, col = divrem(i-1, 2) .+ (0, 1)
+        ax = Axis(fig[row+1, col]; title="Spannungsbetrag an Bus $bus")
+        ylims!(ax, 0.9, 1.15)
+        lines!(ax, ts, sol(ts; idxs=VIndex(bus, :busbar₊u_mag)).u;
+               label="Standart Netzwerk", linestyle=:solid, color=:blue)
+        lines!(ax, ts, sol_droop(ts; idxs=VIndex(bus, :busbar₊u_mag)).u;
+               label="Mit Droop Inverter", color=:green)
+        i == 1 && axislegend(ax; position=:rb)
+    end
     fig
 end
 
@@ -312,10 +387,12 @@ end
 Als erweitertes Beispiel optimieren wir die Parameter des Wechselrichters, 
 um das Systemverhalten zu verbessern.
 
-Wir definieren eine Verlustfunktion, die die Abweichung zwischen der Original-Systemantwort 
+Wir definieren eine Lossfunction, die die Abweichung zwischen der Original-Systemantwort 
 und der Antwort des modifizierten Systems mit Wechselrichter misst:
 
-$L(p) = \sum_{i,t} |x_{ref}(t)_i - x(t;p)_i|^2$
+$$
+L(p) = \sum_{i,t} |x_{ref}(t)_i - x(t;p)_i|^2
+$$
 
 Wobei:
 - $p = [K_p, K_q, \tau]$ die zu optimierenden Parameter sind
@@ -327,10 +404,9 @@ Ziel ist es, Parameter $p$ zu finden, die diese Verlustfunktion minimieren.
 opt_ref = sol(0.3:0.1:10, idxs=[VIndex(1:39, :busbar₊u_r), VIndex(1:39, :busbar₊u_i)])
 tunable_parameters = [:inverter₊Kp, :inverter₊Kq, :inverter₊τ]
 tp_idx = SII.parameter_index(sol_droop, VIndex(DROOP_IDX, tunable_parameters))
+VERBOSE[] = false
 
-cb_verbose[] = false
 function loss(p)
-    ## Berechnet die Verlustfunktion für einen gegebenen Parametersatz
     allp = similar(p, length(u0_droop.p))
     allp .= pflat(u0_droop.p)
     allp[tp_idx] .= p
@@ -345,8 +421,25 @@ function loss(p)
     return sum(abs2, reduce(vcat, res))
 end
 
+p0 = sol_droop(sol_droop.t[begin], idxs=collect(VIndex(DROOP_IDX, tunable_parameters)))
+optf = Optimization.OptimizationFunction((x, p) -> loss(x), Optimization.AutoForwardDiff())
+
+states = Any[]
+callback = function (state, l)
+    push!(states, state)
+    println("loss = ", l)
+    return false
+end
+optprob = Optimization.OptimizationProblem(optf, p0; callback)
+optsol = Optimization.solve(optprob, Optimisers.Adam(0.1), maxiters = 7)
+
+#=
+## Analyse des optimierten Modells
+
+Als letzten schritt wollen wir die Ergebnisse der Optimierung anschauen.
+=#
+pobs = Observable(p0)
 function plot_pset(this_p)
-    ## Funktion zum Visualisieren der Systemantwort mit gegebenen Parametern
     if !(this_p isa Observable)
         this_p = Observable(this_p)
     end
@@ -379,24 +472,8 @@ function plot_pset(this_p)
     fig
 end
 
-p0 = sol_droop(sol_droop.t[begin], idxs=collect(VIndex(DROOP_IDX, tunable_parameters)))
-optf = Optimization.OptimizationFunction((x, p) -> loss(x), Optimization.AutoForwardDiff())
-
-pobs = Observable(p0)
-plot_pset(pobs)
-states = Any[]
-callback = function (state, l)
-    ## Callback-Funktion für den Optimierungsprozess
-    push!(states, state)
-    pobs[] = state.u
-    println(l)
-    return false
-end
-optprob = Optimization.OptimizationProblem(optf, p0; callback)
-optsol = Optimization.solve(optprob, Optimisers.Adam(0.1), maxiters = 7)
-
 fig = plot_pset(pobs)
-record(fig, "droop_optimization.mp4", states; framerate=3) do s
+Record(fig, states; framerate=3) do s
     pobs[] = s.u
     fig
 end
