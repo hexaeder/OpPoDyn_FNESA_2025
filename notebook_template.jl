@@ -1,6 +1,7 @@
 #=
 # OpPoDyn.jl - Eine Bibliothek für Energiesystemdynamik
-## Einführung und Setup
+## 1 Einführung und Grundlagen
+### 1.1 Einführung und Setup
 
 In diesem Workshop werden wir mit OpPoDyn.jl arbeiten, einer Julia-Bibliothek zur Simulation
 und Analyse von dynamischen Vorgängen in Energiesystemen. Wir beginnen mit der Einrichtung
@@ -18,7 +19,7 @@ using LinearAlgebra
 using CairoMakie, DataFrames, Graphs
 
 #=
-## Laden des Netzwerks
+### 1.2 Laden des Netzwerks
 
 Das zu simulierende IEEE 39-Bus-Netzwerk ist im `WorkshopCompanion`-Paket definiert,
 da es hier den Rahmen sprengen würde.
@@ -33,7 +34,7 @@ Es kommen folgende Modelle zum Einsatz:
 @time nw = WorkshopCompanion.load_39bus()
 
 #=
-## Inspektion von Modellkomponenten
+### 1.3 Inspektion von Modellkomponenten
 
 OpPoDyn.jl basiert auf Komponentenmodellen, die miteinander verknüpft werden, um ein Gesamtsystem zu bilden.
 Schauen wir uns einige dieser Komponenten genauer an.
@@ -47,7 +48,8 @@ dump_initial_state(nw[VIndex(30)]) #norelease
 nw[VIndex(30)].metadata[:pfmodel] #norelease
 
 #=
-## Leistungsflussberechnung
+## 2 Systeminitialisierung und Simulation
+### 2.1 Leistungsflussberechnung
 
 Bevor wir dynamische Simulationen durchführen können, müssen wir zunächst einen stabilen
 Arbeitspunkt finden. Dies geschieht durch die Leistungsflussberechnung.
@@ -60,7 +62,7 @@ Simulation, das heißt die Spannungen aller Busse und die Ströme aller Leitunge
 =#
 
 #=
-## Initialisierung der Komponenten
+### 2.2 Initialisierung der Komponenten
 
 Durch die Leistungsflussberechnung kennen wir den Arbeitspunkt unseres Netzwerks.
 Um dynamische Simulationen durchführen zu können, müssen wir alle dynamischen Komponenten
@@ -91,7 +93,7 @@ $$
 OpPoDyn.initialize!(nw)
 
 #=
-## Definition einer Störung im Netzwerk
+### 2.3 Definition einer Störung im Netzwerk
 
 Prinzipiell sind wir jetzt soweit, eine dynamische Simulation durchzuführen.
 Allerdings haben wir die internen Zustände und Parameter gerade so gewählt, dass sich
@@ -146,7 +148,7 @@ hinzugefügten Callback zu sehen.
 nw[EIndex(AFFECTED_LINE)]
 
 #=
-## Dynamische Simulation
+### 2.4 Dynamische Simulation
 
 Jetzt führen wir die eigentliche Simulation durch, um zu sehen, wie das System auf die
 definierte Störung reagiert.
@@ -156,11 +158,11 @@ prob = ODEProblem(nw, uflat(u0), (0,15), pflat(u0); callback=get_callbacks(nw))
 sol = solve(prob, Rodas5P())
 
 #=
-## Visualisierung der Simulationsergebnisse
+### 2.5 Ergebnisanalyse
 
 Nach der Simulation analysieren wir die Ergebnisse mit verschiedenen Plots.
 
-### Leistungsfluss in der betroffenen Leitung
+#### Leistungsfluss in der betroffenen Leitung
 =#
 let fig = Figure()
     ax = Axis(fig[1, 1]; title="Leistungsfluss in der betroffenen Leitung", xlabel="t [s]", ylabel="P [pu]")
@@ -171,7 +173,7 @@ let fig = Figure()
 end
 
 #=
-### Spannungen an benachbarten Bussen
+#### Spannungen an benachbarten Bussen
 =#
 let fig = Figure()
     ax = Axis(fig[1, 1]; title="Spannungen an benachbarten Bussen", xlabel="t [s]", ylabel="U mag [pu]")
@@ -183,7 +185,7 @@ let fig = Figure()
 end
 
 #=
-### Spannungsbeträge im gesamten Netzwerk
+#### Spannungsbeträge im gesamten Netzwerk
 =#
 let fig = Figure()
     ax = Axis(fig[1, 1]; title="Spannungsbeträge im gesamten Netzwerk")
@@ -196,12 +198,12 @@ let fig = Figure()
 end
 
 #=
-### Interaktive Visualisierung
+#### Interaktive Visualisierung
 =#
 ## inspect(sol, restart=true, display=ServerDisp())
 
 #=
-## Modifikation des Netzwerks - Integration eines Wechselrichters
+## 3 Integration eines Wechselrichters mit Droop-Regelung
 
 Im nächsten Schritt modifizieren wir unser Netzwerk, indem wir einen Wechselrichter mit
 Droop-Regelung hinzufügen. Dies demonstriert die Flexibilität von OpPoDyn.jl beim
@@ -251,7 +253,7 @@ $$
 Diese Gleichungen implementieren eine Frequenz-Wirkleistungs-Kopplung (f-P) und eine Spannungs-Blindleistungs-Kopplung (V-Q),
 die typisch für das Droop-Verfahren ist.
 
-## Definition einer neuen, dynamischen Netzwerkkomponente
+### 3.1 Definition einer neuen, dynamischen Netzwerkkomponente
 
 Netzwerkkomponenten in OpPoDyn müssen dem sogenannten "Injector Interface" entsprechen.
 Ein "Injector" ist ein "Einspeiser", also ein System mit einem `Terminal`.
@@ -302,7 +304,7 @@ Modelica.
 end;
 
 #=
-## Definition eines neuen Busses
+### 3.2 Definition eines neuen, dynamischen Busmodels
 
 Ein Bus-Modell vereint potentiell mehrere Injectors, beispielsweise einen Generator und einen Wechselrichter.
 Im Allgemeinen besteht er aus einer `BusBar` und mehreren Injektoren.
@@ -326,7 +328,7 @@ mtkbus = MTKBus(inverter)
 Bus(mtkbus)
 
 #=
-## Aufbau eines Netzwerks mit Droop-Wechselrichter
+### 3.3 Aufbau eines Netzwerks mit Droop-Wechselrichter
 
 Um den neuen Bus ins Netzwerk einzubauen, erzeugen wir ein neues Netzwerk auf Basis des bisherigen:
 =#
@@ -355,7 +357,7 @@ Wie auch bisher können wir die initialisierten Zustände inspizieren.
 dump_initial_state(nw_droop[VIndex(DROOP_IDX)]; obs=false)
 
 #=
-## Simulation des Models mit Wechselrichter
+### 3.4 Simulation des Models mit Wechselrichter
 
 Nun simulieren wir das modifizierte Netzwerk und vergleichen die Ergebnisse mit der
 ursprünglichen Simulation.
@@ -365,7 +367,7 @@ prob_droop = ODEProblem(nw_droop, copy(uflat(u0_droop)), (0,15), copy(pflat(u0_d
 sol_droop = solve(prob_droop, Rodas5P());
 
 #=
-## Vergleich der Simulation mit Wechselrichter und mit Generator
+Wir können die Ergebnisse des neuen Netzwerks mit dem alten Vergleichen:
 =#
 let
     fig = Figure(size=(1000,500))
@@ -385,7 +387,7 @@ let
 end
 
 #=
-## Parameteroptimierung für den Wechselrichter
+## 4 Parameteroptimierung
 
 Als erweitertes Beispiel optimieren wir die Parameter des Wechselrichters,
 um das Systemverhalten zu verbessern.
@@ -437,8 +439,6 @@ optprob = Optimization.OptimizationProblem(optf, p0; callback)
 optsol = Optimization.solve(optprob, Optimisers.Adam(0.1), maxiters = 7)
 
 #=
-## Analyse des optimierten Modells
-
 Als letzten Schritt wollen wir die Ergebnisse der Optimierung anschauen.
 =#
 pobs = Observable(p0)
