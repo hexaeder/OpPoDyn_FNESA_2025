@@ -17,6 +17,19 @@ using SciMLSensitivity, Optimization, OptimizationOptimisers
 using LinearAlgebra
 using CairoMakie, DataFrames, Graphs
 
+#=
+## Laden des Netzwerks
+
+Das zu simulierende ieee 39-Bus Netzwerk ist im `WorkshopCompanion` Paket definiert,
+da es hier den Rahmen sprengen würde.
+
+Es handelt sich um ein 39-Bus System mit 10 Generatoren und 19 Lasten (2 davon an Generator Bussen).
+
+Es kommen folgende Modelle zum Einsatz:
+- Generatoren: 6th Order Sauer-Pai-Machine Model mit Gov (TGOV1) und AVR (IEEEType1)
+- Lasten: ZIP-Lasten
+- Statische PI Lines als Übertragungsleitungen
+=#
 @time nw = WorkshopCompanion.load_39bus()
 
 #=
@@ -25,11 +38,13 @@ using CairoMakie, DataFrames, Graphs
 OpPoDyn.jl basiert auf Komponentenmodellen, die miteinander verknüpft werden, um ein Gesamtsystem zu bilden.
 Schauen wir uns einige dieser Komponenten genauer an.
 =#
-nw[VIndex(30)]
-# also metadata like
-nw[VIndex(30)].metadata[:equations]
-# inspect the initial state
-dump_initial_state(nw[VIndex(30)])
+
+## inspizieren von modellen und metadaten
+
+nw[VIndex(30)] #norelease 
+nw[VIndex(30)].metadata[:equations] #norelease
+dump_initial_state(nw[VIndex(30)]) #norelease
+nw[VIndex(30)].metadata[:pfmodel] #norelease
 
 #=
 ## Leistungsflussberechnung
@@ -39,64 +54,96 @@ Arbeitspunkt finden. Dies geschieht durch die Leistungsflussberechnung.
 =#
 OpPoDyn.solve_powerflow!(nw)
 
-# now we have our "boundaries" defined
-dump_initial_state(nw[VIndex(39)])
+#=
+Der Leistungsfluss bestimmt die "interface variables" unserer dynamischen
+Simulation, das heißt die Spannungen aller Busse und die Ströme aller Leitungen.
+=#
 
 #=
 ## Initialisierung der Komponenten
 
-Nach der Leistungsflussberechnung müssen alle dynamischen Komponenten initialisiert werden,
-damit sie im berechneten Arbeitspunkt im Gleichgewicht sind.
+Durch die Leistungsflussberechnung kennen wir den Arbeitspunkt unseres Netzwerks.
+Um dynamische Simulationen durchführen zu können, müssen wir alle dynamischen Komponenten
+initialisieren.
+
+Initialisieren bedeutet in diesem Fall, das sich die dynamischen Modelle im
+Arbeitspunkt in einem Gleichgewichtszustand befinden.
+
+Wenn wir uns einen z.b. den Zustand eines generators anschauen, sehen wir, dass
+einige interne Zustände und Parameter noch nicht festgelegt sind.
 =#
 
-findall(nw[VIndex(31)].metadata[:observed]) do eq
-    contains(repr(eq.lhs), "u_r")
-end
-nw[VIndex(31)].metadata[:observed][30]
+dump_initial_state(nw[VIndex(39)]; obs=false)
 
-nw[VIndex(31)]
-dump_initial_state(nw[VIndex(31)])
+#=
+Wir lösen dieses problem, in dem wir die "interface" Variablen Strom und Spannung
+aus der Leistungsflussberechnung verwenden, und freie interne zustände $x$ und freie
+interne parameter $p$ so wählen, das folgende Gleichungen erfüllt sind:
 
-nw[VIndex(31)].metadata[:observed][2]
-nw[VIndex(31)].metadata[:observed][18]
-nw[VIndex(31)].metadata[:observed][24]
-nw[VIndex(31)].metadata[:observed][25]
-nw[VIndex(31)].metadata[:observed][30]
+$$
+\begin{aligned}
+\dot{x} &= f(x, \color{red}i_{dq}\color{black}, p) =\color{red}0\color{black} \\
+\color{red}u_{dq}\color{black} &= g(x, \color{red}i_{dq}\color{black}, p)
+\end{aligned}
+$$
 
-
-
-v31_mag = norm(get_initial_state(nw, VIndex(31, [:busbar₊u_r, :busbar₊u_i])))
-v39_mag = norm(get_initial_state(nw, VIndex(39, [:busbar₊u_r, :busbar₊u_i])))
-set_default!(nw, VIndex(31,:load₊Vset), v31_mag)
-set_default!(nw, VIndex(39,:load₊Vset), v39_mag)
+=#
 OpPoDyn.initialize!(nw)
 
 #=
 ## Definition einer Störung im Netzwerk
 
-Nun definieren wir eine Störung, um die dynamische Reaktion des Systems zu untersuchen.
-Hier simulieren wir einen Kurzschluss auf einer Leitung, gefolgt vom Abschalten dieser Leitung.
+Prinzipiell sind wir jetzt soweit eine dynamische Simulation durchzuführen.
+Allerdings haben wir die internen zustände und parameter gerade so gewählt, dass sich
+das dynamische system in einem Gleichgewichtszustand befindet, d.h. es passiert nichts.
+
+Um dynamik zu sehen, muss das System angeregt bzw. gestört werden.
+Verschiedene Störungen kommen infrage, z.B.
+- Abschalten einer Leitung (n-1 Kriterium)
+- Änderung einer Last
+- Kurzschluss einer Leitung
+- Abschalten eines Generators
+
+Für diesen Workshop fokussieren wir uns auf den **Kurzschluss einer Leitung**.
+Der Kurzschluss tritt entlang einer Leitung auf und wird nach 0.1 Sekunden
+"behoben", in dem die Leitung abgeschaltet wird.
+
+Zu diesem Zweck hat unsere Leitung zwei zusätzliche interne Parameter:
+- `pibranch₊shortcircuit`: Dieser Parameter wird auf 1 gesetzt, wenn ein Kurzschluss auftritt.
+- `pibranch₊active`: Dieser Parameter wird auf 0 gesetzt, wenn die Leitung deaktiviert wird.
 =#
-const cb_verbose = Ref(true)
+AFFECTED_LINE = 11
+nw[EIndex(AFFECTED_LINE)]
+#=
+Wir definieren sogenannte "Callbacks", um währen der dynamischen Simulation zu vorgegebenen
+Zeitpunkten diese Parameter zu ändern.
+=#
 _enable_short = ComponentAffect([], [:pibranch₊shortcircuit]) do u, p, ctx
-    ## Meldung ausgeben wenn Kurzschluss aktiviert wird
-    cb_verbose[] && @info "Aktiviere Kurzschluss auf Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
+    @info "Aktiviere Kurzschluss auf Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
     p[:pibranch₊shortcircuit] = 1
 end
+shortcircuit_cb = PresetTimeComponentCallback(0.1, _enable_short)
+
+#-
+
 _disable_line = ComponentAffect([], [:pibranch₊active]) do u, p, ctx
-    ## Meldung ausgeben wenn Leitung deaktiviert wird
-    cb_verbose[] && @info "Deaktiviere Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
+    @info "Deaktiviere Leitung $(ctx.src)=>$(ctx.dst) bei t = $(ctx.t)"
     p[:pibranch₊active] = 0
 end
-shortcircuit_cb = PresetTimeComponentCallback(0.1, _enable_short)
 deactivate_cb = PresetTimeComponentCallback(0.2, _disable_line)
 
-affected_edge = 11
-add_callback!(nw[EIndex(11)], shortcircuit_cb)
-add_callback!(nw[EIndex(11)], deactivate_cb)
-nw[EIndex(11)]
+#=
+Diese Störungen, müssen wir nun einer Leitung zuweisen.
+=#
+set_callback!(nw, EIndex(AFFECTED_LINE),
+    (shortcircuit_cb, deactivate_cb)
+);
 
-
+#=
+Wir können erneut das entsprechende Line Modell inspizieren, um den
+hinzugefügten callback zu sehen.
+=#
+nw[EIndex(AFFECTED_LINE)]
 
 #=
 ## Dynamische Simulation
@@ -116,11 +163,9 @@ Nach der Simulation analysieren wir die Ergebnisse mit verschiedenen Plots.
 ### Leistungsfluss in der betroffenen Leitung
 =#
 let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Leistungsfluss in der betroffenen Leitung")
+    ax = Axis(fig[1, 1]; title="Leistungsfluss in der betroffenen Leitung", xlabel="t [s]", ylabel="P [pu]")
     ts = range(0, 0.28,length=1000)
-    lines!(ax, ts, sol(ts; idxs=EIndex(6, :src₊P)).u; label="P (Quellende)")
-    lines!(ax, ts, sol(ts; idxs=EIndex(6, :dst₊P)).u; label="P (Zielende)")
-    lines!(ax, ts, sol(ts; idxs=@obsex(-EIndex(6, :src₊P)-EIndex(6, :dst₊P))).u; linestyle=:dot, label="P Verlust")
+    lines!(ax, ts, sol(ts; idxs=EIndex(AFFECTED_LINE, :dst₊P)).u; label="P")
     axislegend(ax)
     fig
 end
@@ -128,12 +173,11 @@ end
 #=
 ### Spannungen an benachbarten Bussen
 =#
-
 let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Spannungen an benachbarten Bussen")
-    ts = range(0, 0.3, length=1000)
-    lines!(ax, ts, sol(ts; idxs=VIndex(3, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 3")
-    lines!(ax, ts, sol(ts; idxs=VIndex(4, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 4")
+    ax = Axis(fig[1, 1]; title="Spannungen an benachbarten Bussen", xlabel="t [s]", ylabel="U mag [pu]")
+    ts = range(0, 15, length=1000)
+    lines!(ax, ts, sol(ts; idxs=VIndex(5, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 3")
+    lines!(ax, ts, sol(ts; idxs=VIndex(8, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 4")
     axislegend(ax, position=:rb)
     fig
 end
@@ -141,26 +185,11 @@ end
 #=
 ### Spannungsbeträge im gesamten Netzwerk
 =#
-
 let fig = Figure()
     ax = Axis(fig[1, 1]; title="Spannungsbeträge im gesamten Netzwerk")
     ts = range(0, 15, length=1000)
     for i in 1:39
         lines!(ax, ts, sol(ts; idxs=VIndex(i, :busbar₊u_mag)).u)
-    end
-    fig
-end
-
-#=
-### Frequenzen an den Generatoren
-=#
-
-vidxs(nw, 30, "ω")
-let fig = Figure()
-    ax = Axis(fig[1, 1]; title="Frequenzen an den Generatoren")
-    ts = range(0, 15, length=1000)
-    for i in 30:39
-        lines!(ax, ts, sol(ts; idxs=only(vidxs(nw, i, r"machine₊ω$"))).u)
     end
     fig
 end
@@ -175,8 +204,12 @@ Erstellen und Anpassen von Modellen.
 Der Droop-Wechselrichter basiert auf folgenden Gleichungen:
 
 **Leistungsmessung:**
-$P_{meas} = u_r \cdot i_r + u_i \cdot i_i$
-$Q_{meas} = u_r \cdot i_i - u_i \cdot i_r$
+$$
+\begin{aligned}
+P_{meas} &= u_r \cdot i_r + u_i \cdot i_i\\
+Q_{meas} &= u_r \cdot i_i - u_i \cdot i_r
+\end{aligned}
+$$
 
 **Leistungsfilterung:**
 $\tau \cdot \frac{dP_{filt}}{dt} = P_{meas} - P_{filt}$

@@ -376,6 +376,7 @@ function load_39bus()
             load₊KqZ = 1.0,
             load₊Pset = -0.09199999809265137,
             load₊Qset = -0.045999999046325686,
+            load₊Vset = 0.982, # set to make initialization easier
         ),
         Bus(
             controlled_gen_bus;
@@ -731,6 +732,7 @@ function load_39bus()
             load₊KqZ = 1.0,
             load₊Pset = -11.04,
             load₊Qset = -2.5,
+            load₊Vset = 1.03, # set to make initialization easier
         )
     ]
 

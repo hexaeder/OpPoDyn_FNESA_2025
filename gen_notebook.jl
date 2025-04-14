@@ -65,13 +65,22 @@ end
 
 ispath(NBDIR) || mkpath(NBDIR)
 
-if isfile(joinpath(NBDIR, "Project.toml"))
-    @info "Replace notebook/Project.toml with new version"
-    rm(joinpath(NBDIR, "Project.toml"))
+# Parse command line arguments
+keep_project = "--keep-project" in ARGS
+
+if isfile(joinpath(NBDIR, "Project.toml")) 
+    if keep_project
+        @info "Keeping existing notebook/Project.toml as requested with --keep-project"
+    else
+        @info "Replace notebook/Project.toml with new version"
+        rm(joinpath(NBDIR, "Project.toml"))
+    end
 else
     @info "Create notebook/Project.toml"
 end
-mv(joinpath(TMPDIR, "Project.toml"), joinpath(NBDIR, "Project.toml"))
+if !isfile(joinpath(NBDIR, "Project.toml"))
+    mv(joinpath(TMPDIR, "Project.toml"), joinpath(NBDIR, "Project.toml"))
+end
 
 if isfile(joinpath(NBDIR, "workshop.ipynb"))
     @info "Replace notebook/workshop.ipynb with new version"

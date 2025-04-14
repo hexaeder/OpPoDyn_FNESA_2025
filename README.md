@@ -78,7 +78,7 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
 Um am Tag des Workshops interaktiv teilzunehmen, muss Jupyter gestartet und das Notebook geöffnet werden. Navigieren Sie dafür zunächst wie oben beschrieben zum entpackten Verzeichnis.
 In diesem Verzeichnis wird der Befehl
 
-```
+```bash
 julia --project=@. -e 'using IJulia; notebook(dir=".")'
 ```
 
