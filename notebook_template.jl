@@ -2,8 +2,8 @@
 # OpPoDyn.jl - Eine Bibliothek für Energiesystemdynamik
 ## Einführung und Setup
 
-In diesem Workshop werden wir mit OpPoDyn.jl arbeiten, einer Julia-Bibliothek zur Simulation 
-und Analyse von dynamischen Vorgängen in Energiesystemen. Wir beginnen mit der Einrichtung 
+In diesem Workshop werden wir mit OpPoDyn.jl arbeiten, einer Julia-Bibliothek zur Simulation
+und Analyse von dynamischen Vorgängen in Energiesystemen. Wir beginnen mit der Einrichtung
 unserer Arbeitsumgebung.
 =#
 using WorkshopCompanion
@@ -41,7 +41,7 @@ Schauen wir uns einige dieser Komponenten genauer an.
 
 ## inspizieren von modellen und metadaten
 
-nw[VIndex(30)] #norelease 
+nw[VIndex(30)] #norelease
 nw[VIndex(30)].metadata[:equations] #norelease
 dump_initial_state(nw[VIndex(30)]) #norelease
 nw[VIndex(30)].metadata[:pfmodel] #norelease
@@ -49,7 +49,7 @@ nw[VIndex(30)].metadata[:pfmodel] #norelease
 #=
 ## Leistungsflussberechnung
 
-Bevor wir dynamische Simulationen durchführen können, müssen wir zunächst einen stabilen 
+Bevor wir dynamische Simulationen durchführen können, müssen wir zunächst einen stabilen
 Arbeitspunkt finden. Dies geschieht durch die Leistungsflussberechnung.
 =#
 OpPoDyn.solve_powerflow!(nw)
@@ -148,7 +148,7 @@ nw[EIndex(AFFECTED_LINE)]
 #=
 ## Dynamische Simulation
 
-Jetzt führen wir die eigentliche Simulation durch, um zu sehen, wie das System auf die 
+Jetzt führen wir die eigentliche Simulation durch, um zu sehen, wie das System auf die
 definierte Störung reagiert.
 =#
 u0 = NWState(nw)
@@ -176,8 +176,8 @@ end
 let fig = Figure()
     ax = Axis(fig[1, 1]; title="Spannungen an benachbarten Bussen", xlabel="t [s]", ylabel="U mag [pu]")
     ts = range(0, 15, length=1000)
-    lines!(ax, ts, sol(ts; idxs=VIndex(5, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 3")
-    lines!(ax, ts, sol(ts; idxs=VIndex(8, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 4")
+    lines!(ax, ts, sol(ts; idxs=VIndex(5, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 5")
+    lines!(ax, ts, sol(ts; idxs=VIndex(8, :busbar₊u_mag)).u; label="Spannungsbetrag an Bus 8")
     axislegend(ax, position=:rb)
     fig
 end
@@ -187,6 +187,7 @@ end
 =#
 let fig = Figure()
     ax = Axis(fig[1, 1]; title="Spannungsbeträge im gesamten Netzwerk")
+    ylims!(ax, 0.9, 1.15)
     ts = range(0, 15, length=1000)
     for i in 1:39
         lines!(ax, ts, sol(ts; idxs=VIndex(i, :busbar₊u_mag)).u)
@@ -195,15 +196,15 @@ let fig = Figure()
 end
 
 #=
-Interaktive Visualisierung
+### Interaktive Visualisierung
 =#
-## inspect(sol, restart=true)
+## inspect(sol, restart=true, display=ServerDisp())
 
 #=
 ## Modifikation des Netzwerks - Integration eines Wechselrichters
 
-Im nächsten Schritt modifizieren wir unser Netzwerk, indem wir einen Wechselrichter mit 
-Droop-Regelung hinzufügen. Dies demonstriert die Flexibilität von OpPoDyn.jl beim 
+Im nächsten Schritt modifizieren wir unser Netzwerk, indem wir einen Wechselrichter mit
+Droop-Regelung hinzufügen. Dies demonstriert die Flexibilität von OpPoDyn.jl beim
 Erstellen und Anpassen von Modellen.
 
 Der Droop-Wechselrichter basiert auf folgenden Gleichungen:
@@ -298,7 +299,7 @@ Modelica.
         terminal.u_r ~ V*cos(δ)
         terminal.u_i ~ V*sin(δ)
     end
-end
+end;
 
 #=
 ## Definition eines neuen Busses
@@ -325,6 +326,8 @@ mtkbus = MTKBus(inverter)
 Bus(mtkbus)
 
 #=
+## Aufbau eines Netzwerks mit Droop-Wechselrichter
+
 Um den neuen Bus ins Netzwerk einzubauen, erzeugen wir ein neues Netzwerk auf basis des bisherigen:
 =#
 
@@ -354,7 +357,7 @@ dump_initial_state(nw_droop[VIndex(DROOP_IDX)]; obs=false)
 #=
 ## Simulation des Models mit Wechselrichter
 
-Nun simulieren wir das modifizierte Netzwerk und vergleichen die Ergebnisse mit der 
+Nun simulieren wir das modifizierte Netzwerk und vergleichen die Ergebnisse mit der
 ursprünglichen Simulation.
 =#
 u0_droop = NWState(nw_droop)
@@ -382,12 +385,12 @@ let
 end
 
 #=
-## Parameteroptimierung für den Wechselrichter (fortgeschrittenes Thema)
+## Parameteroptimierung für den Wechselrichter
 
-Als erweitertes Beispiel optimieren wir die Parameter des Wechselrichters, 
+Als erweitertes Beispiel optimieren wir die Parameter des Wechselrichters,
 um das Systemverhalten zu verbessern.
 
-Wir definieren eine Lossfunction, die die Abweichung zwischen der Original-Systemantwort 
+Wir definieren eine Lossfunction, die die Abweichung zwischen der Original-Systemantwort
 und der Antwort des modifizierten Systems mit Wechselrichter misst:
 
 $$
@@ -396,7 +399,7 @@ $$
 
 Wobei:
 - $p = [K_p, K_q, \tau]$ die zu optimierenden Parameter sind
-- $x_{ref}(t)$ die Referenzlösung des ursprünglichen Systems 
+- $x_{ref}(t)$ die Referenzlösung des ursprünglichen Systems
 - $x(t;p)$ die Lösung des modifizierten Systems mit den Parametern $p$
 
 Ziel ist es, Parameter $p$ zu finden, die diese Verlustfunktion minimieren.
@@ -412,7 +415,7 @@ function loss(p)
     allp[tp_idx] .= p
     _sol = solve(prob_droop, Rodas5P(autodiff=true);
         p = allp, saveat = 0.01, tspan=(0.0, opt_ref.t[end]),
-        initializealg = SciMLBase.NoInit(), 
+        initializealg = SciMLBase.NoInit(),
     )
     SciMLBase.successful_retcode(_sol) || return Inf
 
