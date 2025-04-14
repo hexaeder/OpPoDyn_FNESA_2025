@@ -2,11 +2,12 @@
 
 Dieses Repository enthält Workshopmaterialien für Energiesystemdynamik mit Julia, entwickelt für das **Jahrestreffen des Forschungsnetzwerks Energiesystemanalyse** am 6.-7. Juni 2025 in Berlin.
 
-## Erste Schritte
+Wenn Sie während des Workshops die Codebeispiele nachvollziehen möchten, bitten wir Sie,
+die folgenden Schritte **vor dem Workshop durchzuführen**. Insbesondere geht es um die Kompilierung von Paketen, die einige Zeit dauern kann.
 
-### Voraussetzungen
+Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben sollte.
 
-1. **Julia 1.11 installieren**
+## Julia 1.11 installieren
 
    Die empfohlene Methode zur Installation von Julia ist [JuliaUp](https://julialang.org/downloads/), das die Verwaltung verschiedener Julia-Versionen erleichtert:
 
@@ -18,40 +19,32 @@ Dieses Repository enthält Workshopmaterialien für Energiesystemdynamik mit Jul
    curl -fsSL https://install.julialang.org | sh
    ```
 
-2. **IJulia in deiner globalen Umgebung installieren**
+## Workshop-Notebook herunterladen und nötige Pakete installieren
 
-   Starte Julia und führe folgenden code aus, um `IJulia` (die Notebook-Umgebung) zu installieren:
-   ```julia
-   using Pkg
-   Pkg.add("IJulia")
-   ```
-
-### Workshop-Notebook herunterladen und ausführen
-
-1. **Lade die neueste Notebook-Version herunter**
+1. **Laden Sie die neueste Notebook-Version herunter**
    
-   Gehe zur [Release-Seite](../../releases) dieses Repositories und lade die neueste `notebook.zip`-Datei herunter.
+   Gehen Sie zur [Release-Seite](../../releases) dieses Repositories und laden Sie die neueste `notebook.zip`-Datei herunter.
 
-2. **Entpacke die ZIP-Datei** 📦 an einen Ort deiner Wahl
+2. **Entpacken Sie die ZIP-Datei** an einen Ort Ihrer Wahl
 
 3. **Terminal/Eingabeaufforderung öffnen**
 
-   #### Windows:
-   - **Methode 1**: Rechtsklick auf die Schaltfläche Start und wähle "Windows Terminal" oder "Eingabeaufforderung"
-   - **Methode 2**: Drücke `Win + R`, gib `cmd` oder `powershell` ein und drücke Enter
+   ### Windows:
+   - **Methode 1**: Rechtsklick auf die Schaltfläche "Start" und wählen Sie "Terminal" oder "Eingabeaufforderung"
+   - **Methode 2**: Drücken Sie `Win + R`, geben Sie `cmd` oder `powershell` ein und drücken Sie Enter
    - **Methode 3**: Im Datei-Explorer zum entpackten Ordner navigieren, dann mit gedrückter Umschalttaste rechtsklicken und "PowerShell-Fenster hier öffnen" oder "Eingabeaufforderungsfenster hier öffnen" wählen
    
-   #### macOS:
-   - Öffne Spotlight (Cmd + Leertaste) und gib "Terminal" ein, dann drücke Enter
-   - Oder navigiere zu Programme > Dienstprogramme > Terminal
+   ### macOS:
+   - Öffnen Sie Spotlight (Cmd + Leertaste) und geben Sie "Terminal" ein, dann drücken Sie Enter
+   - Oder navigieren Sie zu Programme > Dienstprogramme > Terminal
 
-   #### Linux:
+   ### Linux:
    - Üblicherweise öffnet Strg + Alt + T ein Terminal
-   - Oder suche nach "Terminal" im Anwendungsmenü
+   - Oder suchen Sie nach "Terminal" im Anwendungsmenü
 
 4. **Zum Ordner navigieren**
 
-   Verwende den Befehl `cd`, um zum entpackten Ordner zu navigieren:
+   Verwenden Sie den Befehl `cd`, um zum entpackten Ordner zu navigieren:
 
    ```bash
    # Windows-Beispiel
@@ -62,38 +55,31 @@ Dieses Repository enthält Workshopmaterialien für Energiesystemdynamik mit Jul
    ```
 
    Tipps für Windows-Benutzer:
-   - Verwende `dir`, um Dateien im aktuellen Verzeichnis aufzulisten
-   - Verwende `cd ..`, um eine Ebene im Verzeichnisbaum nach oben zu gehen
-   - Du kannst einen Ordner in das Terminalfenster ziehen, um seinen Pfad automatisch einzufügen
-   - Tab-Vervollständigung hilft bei der Navigation: Gib einen Teil eines Ordnernamens ein und drücke Tab
+   - Verwenden Sie `dir`, um Dateien im aktuellen Verzeichnis aufzulisten
+   - Verwenden Sie `cd ..`, um eine Ebene im Verzeichnisbaum nach oben zu gehen
+   - Sie können einen Ordner in das Terminalfenster ziehen, um seinen Pfad automatisch einzufügen
+   - Tab-Vervollständigung hilft bei der Navigation: Geben Sie einen Teil eines Ordnernamens ein und drücken Sie Tab
 
-5. **Julia starten**
+5. **Workshop-Umgebung initialisieren**
 
-   Sobald du zum Ordner navigiert bist:
+   Sobald Sie zum Ordner navigiert sind, muss die Workshop-Umgebung initialisiert werden:
 
    ```bash
    # Auf allen Plattformen
-   julia --project=@.
+   julia --project=@. -e "using Pkg; Pkg.instantiate()"
    ```
-
-6. **Umgebung initialisieren**
-
-   In der Julia-REPL (die wie `julia>` aussieht), führe aus:
-   ```julia
-   using Pkg
-   Pkg.instantiate()
-   ```
-
-7. **Jupyter-Notebook starten**
-
-   In derselben Julia-Sitzung:
-   ```julia
-   using IJulia
-   notebook(dir=".")
-   ```
-
-   Dies öffnet deinen Standardbrowser mit der Jupyter-Oberfläche.
-
-8. **Workshop-Notebook öffnen**
    
-   In der Jupyter-Browseroberfläche klickst du auf `workshop.ipynb`, um den Workshop zu starten.
+   Dieses Kommando wird alle nötigen Julia-Pakete herunterladen und kompilieren. Das kann etwas dauern.
+   
+   Gehen Sie unbedingt sicher, dass dieser Befehl im richtigen Ordner ausgeführt wird. Dies ist der Fall, wenn `dir` (Windows) bzw. `ls` (macOS/Linux) im Terminal die Dateien `Project.toml` und `workshop.ipynb` anzeigt.
+   
+## Workshop-Notebook öffnen
+
+Um am Tag des Workshops interaktiv teilzunehmen, muss Jupyter gestartet und das Notebook geöffnet werden. Navigieren Sie dafür zunächst wie oben beschrieben zum entpackten Verzeichnis.
+In diesem Verzeichnis wird der Befehl
+
+```
+julia --project=@. -e 'using IJulia; notebook(dir=".")'
+```
+
+ausgeführt. Daraufhin sollte sich der Browser mit Jupyter öffnen. Hier kann die Datei `workshop.ipynb` ausgewählt und geöffnet werden.
