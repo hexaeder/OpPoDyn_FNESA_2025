@@ -35,17 +35,16 @@ jobs:
     - name: Generate Notebook
       run: julia gen_notebook.jl
 
-    - name: Create Notebook Archive
-      run: zip -r notebook.zip notebook/
-
-
-    - name: Test the notebook
+    - name: Test the full notebook
       shell: julia --project=notebook --color=yes {0}
       run: |
          import Pkg;
          Pkg.instantiate()
          using NBInclude
-         @nbinclude(joinpath(pwd(), "notebook", "workshop.ipynb"))
+         @nbinclude(joinpath(pwd(), "notebook", "workshop_full.ipynb"))
+
+    - name: Create Notebook Archive
+      run: zip -r notebook.zip notebook/workshop.ipynb notebook/Project.toml
 
     - name: Get Commit SHA
       id: vars
