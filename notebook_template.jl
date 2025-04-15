@@ -200,7 +200,7 @@ end
 #=
 #### Interaktive Visualisierung
 =#
-## inspect(sol, restart=true, display=ServerDisp())
+## inspect(sol, reset=true, restart=true, display=ServerDisp())
 
 #=
 ## 3 Integration eines Wechselrichters mit Droop-Regelung
