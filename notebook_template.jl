@@ -378,7 +378,7 @@ let
         ax = Axis(fig[row+1, col]; title="Spannungsbetrag an Bus $bus")
         ylims!(ax, 0.9, 1.15)
         lines!(ax, ts, sol(ts; idxs=VIndex(bus, :busbar₊u_mag)).u;
-               label="Standart Netzwerk", linestyle=:solid, color=:blue)
+               label="Standard Netzwerk", linestyle=:solid, color=:blue)
         lines!(ax, ts, sol_droop(ts; idxs=VIndex(bus, :busbar₊u_mag)).u;
                label="Mit Droop Inverter", color=:green)
         i == 1 && axislegend(ax; position=:rb)
