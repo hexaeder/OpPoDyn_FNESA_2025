@@ -33,6 +33,7 @@ jobs:
          using Pkg;
          Pkg.add(["Literate", "NBInclude"])
          Pkg.instantiate()
+         Pkg.build() # might be necessary for cached IJulia?
 
     - name: Generate Notebook
       run: julia gen_notebook.jl
