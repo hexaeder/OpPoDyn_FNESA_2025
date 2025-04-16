@@ -98,11 +98,12 @@ Gehen Sie dazu wie folgt vor:
 
 1. Gehen Sie zur [Julia Download Page](https://julialang.org/downloads/), und laden Sie den **Installer** für das aktuelle Release 1.11.5 herunter.
 
-** insert screenshot**
+![image](https://github.com/user-attachments/assets/53f2fe01-7f12-4907-b959-791b23dbc9d3)
 
 2. Starten Sie den Installer und stellen Sie sicher, dass der Haken bei "Add Julia to Path" gesetzt ist:
 
-** insert screenshot **
+![image](https://github.com/user-attachments/assets/5417b741-b4f6-4782-a978-c91b6785a812)
+
 
 3. Öffnen Sie eine **neue** PowerShell (im Startmenü nach PowerShell suchen) und
    geben Sie `julia` ein. Starten Sie gegebenenfalls Ihren PC neu. Sollte sich
