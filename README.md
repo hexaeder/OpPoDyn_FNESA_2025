@@ -22,7 +22,7 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
    Julia ist korrekt installiert, wenn sich beim Ausführen von `julia` im Terminal/Powershell ein Julia Prozess öffnet:
    ![image](https://github.com/user-attachments/assets/28f73953-7afe-4ac6-b568-953e84f3033e)
 
-   Sollte das **nicht** der Fall sein, lesen Sie bitte den [Troubleshooting Abschnitt](Troubleshooting: Julia Installation unter Windows) weiter unten.
+   Sollte das **nicht** der Fall sein, lesen Sie bitte den [Troubleshooting Abschnitt](#troubleshooting-julia-installation-unter-windows) weiter unten.
 
 ## Workshop-Notebook herunterladen und nötige Pakete installieren
 
