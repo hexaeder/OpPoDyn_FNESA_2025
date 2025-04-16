@@ -9,15 +9,18 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
 
 ## Julia 1.11 installieren
 
-   Die empfohlene Methode zur Installation von Julia ist [JuliaUp](https://julialang.org/downloads/), das die Verwaltung verschiedener Julia-Versionen erleichtert:
+   Die empfohlene Methode zur [Installation von Julia ist JuliaUp](https://julialang.org/install/), das die Verwaltung verschiedener Julia-Versionen erleichtert:
 
    ```bash
-   # Unter Windows (PowerShell mit Administratorrechten):
+   # Unter Windows in der PowerShell ausführen (Starmenu öffnen und nach "PowerShell" suchen)
    winget install --name Julia --id 9NJNWW8PVKMN -e -s msstore
 
    # Unter Linux/macOS:
    curl -fsSL https://install.julialang.org | sh
    ```
+
+   Julia ist korrekt installiert, wenn sich beim Ausführen von `julia` im Terminal/Powershell ein Julia Prozess öffnet:
+   ![image](https://github.com/user-attachments/assets/28f73953-7afe-4ac6-b568-953e84f3033e)
 
 ## Workshop-Notebook herunterladen und nötige Pakete installieren
 
@@ -62,16 +65,15 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
 
 5. **Workshop-Umgebung initialisieren**
 
-   Sobald Sie zum Ordner navigiert sind, muss die Workshop-Umgebung initialisiert werden:
-
+   Sobald Sie zum Ordner navigiert sind, muss die Workshop-Umgebung initialisiert werden.
+   Gehen Sie unbedingt sicher, dass dieser Befehl im richtigen Ordner ausgeführt wird. Dies ist der Fall, wenn `dir` (Windows) bzw. `ls` (macOS/Linux) im Terminal die Dateien `Project.toml` und `workshop.ipynb` anzeigt.
+   
    ```bash
    # Auf allen Plattformen
    julia --project=@. -e "using Pkg; Pkg.instantiate()"
    ```
    
    Dieses Kommando wird alle nötigen Julia-Pakete herunterladen und kompilieren. Das kann etwas dauern.
-   
-   Gehen Sie unbedingt sicher, dass dieser Befehl im richtigen Ordner ausgeführt wird. Dies ist der Fall, wenn `dir` (Windows) bzw. `ls` (macOS/Linux) im Terminal die Dateien `Project.toml` und `workshop.ipynb` anzeigt.
    
 ## Workshop-Notebook öffnen
 
