@@ -43,6 +43,7 @@ jobs:
       run: |
          import Pkg;
          Pkg.instantiate()
+         Pkg.build() # might be necessary for cached IJulia?
          using NBInclude
          @nbinclude(joinpath(pwd(), "notebook", "workshop_full.ipynb"))
 
