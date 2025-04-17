@@ -418,6 +418,7 @@ function loss(p)
     _sol = solve(prob_droop, Rodas5P(autodiff=true);
         p = allp, saveat = 0.01, tspan=(0.0, opt_ref.t[end]),
         initializealg = SciMLBase.NoInit(),
+        abstol=0.01, reltol=0.01,
     )
     SciMLBase.successful_retcode(_sol) || return Inf
 
