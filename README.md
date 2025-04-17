@@ -30,9 +30,12 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
 
    Gehen Sie zur [Release-Seite](../../releases) dieses Repositories und laden Sie die neueste `notebook.zip`-Datei herunter.
 
-2. **Entpacken Sie die ZIP-Datei** an einen Ort Ihrer Wahl
+   ![image](https://github.com/user-attachments/assets/ec5dfd02-f3e7-4d21-b645-1cb7cdc2da85)
 
-3. **Terminal/Eingabeaufforderung öffnen**
+
+3. **Entpacken Sie die ZIP-Datei** an einen Ort Ihrer Wahl
+
+4. **Terminal/Eingabeaufforderung öffnen**
 
    ### Windows:
    - **Methode 1**: Rechtsklick auf die Schaltfläche "Start" und wählen Sie "Terminal" oder "Eingabeaufforderung"
@@ -47,7 +50,7 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
    - Üblicherweise öffnet Strg + Alt + T ein Terminal
    - Oder suchen Sie nach "Terminal" im Anwendungsmenü
 
-4. **Zum Ordner navigieren**
+5. **Zum Ordner navigieren**
 
    Verwenden Sie den Befehl `cd`, um zum entpackten Ordner zu navigieren:
 
@@ -65,7 +68,7 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
    - Sie können einen Ordner in das Terminalfenster ziehen, um seinen Pfad automatisch einzufügen
    - Tab-Vervollständigung hilft bei der Navigation: Geben Sie einen Teil eines Ordnernamens ein und drücken Sie Tab
 
-5. **Workshop-Umgebung initialisieren**
+6. **Workshop-Umgebung initialisieren**
 
    Sobald Sie zum Ordner navigiert sind, muss die Workshop-Umgebung initialisiert werden.
    Gehen Sie unbedingt sicher, dass dieser Befehl im richtigen Ordner ausgeführt wird. Dies ist der Fall, wenn `dir` (Windows) bzw. `ls` (macOS/Linux) im Terminal die Dateien `Project.toml` und `workshop.ipynb` anzeigt.
