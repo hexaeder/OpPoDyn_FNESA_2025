@@ -4,6 +4,7 @@ authors = ["Hans Würfel <git@wuerfel.io>"]
 version = "0.1.0"
 
 [deps]
+Bonito = "824d6782-a2ef-11e9-3a09-e5662e0c26f8"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DiffEqCallbacks = "459566f4-90b8-5000-8ac3-15dfb0a30def"
@@ -26,8 +27,10 @@ WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [sources]
 OpPoDyn = {rev = "hw/workshop", url = "https://github.com/JuliaEnergy/OpPoDyn.jl"}
+Bonito = {rev = "0d1f6e2", url = "https://github.com/SimonDanisch/Bonito.jl"}
 
 [compat]
+Bonito = "4.0.3"
 CairoMakie = "0.13"
 DataFrames = "1.6.1"
 DiffEqCallbacks = "3,4"
