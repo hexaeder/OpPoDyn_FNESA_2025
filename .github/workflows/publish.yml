@@ -21,7 +21,7 @@ jobs:
     - name: Set up Julia
       uses: julia-actions/setup-julia@v2
       with:
-        version: '1.11.4'
+        version: '1.11.5'
 
     - name: Load Julia packages from cache
       id: julia-cache
@@ -48,7 +48,7 @@ jobs:
          @nbinclude(joinpath(pwd(), "notebook", "workshop_full.ipynb"))
 
     - name: Create Notebook Archive
-      run: zip -r notebook.zip notebook/workshop.ipynb notebook/Project.toml
+      run: zip -r notebook.zip notebook/workshop.ipynb notebook/Project.toml notebook/Manifest.toml
 
     - name: Get Commit SHA
       id: vars
