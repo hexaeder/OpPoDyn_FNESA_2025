@@ -48,8 +48,9 @@ jobs:
          @nbinclude(joinpath(pwd(), "notebook", "workshop_full.ipynb"))
 
     - name: Create Notebook Archive
-      run: zip -r notebook.zip notebook/workshop.ipynb notebook/Project.toml notebook/Manifest.toml
-
+      run: |
+         cd notebook
+         zip ../notebook.zip workshop.ipynb Project.toml Manifest.toml
     - name: Get Commit SHA
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
