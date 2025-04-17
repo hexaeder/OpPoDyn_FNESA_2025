@@ -83,7 +83,7 @@ Um am Tag des Workshops interaktiv teilzunehmen, muss Jupyter gestartet und das 
 In diesem Verzeichnis wird der Befehl
 
 ```bash
-julia --project=@. -e 'using IJulia; notebook(dir=".")'
+julia --project=@. -e "using IJulia; notebook(dir=pwd())"
 ```
 
 ausgeführt. Daraufhin sollte sich der Browser mit Jupyter öffnen. Hier kann die Datei `workshop.ipynb` ausgewählt und geöffnet werden.
