@@ -72,7 +72,7 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
 
    ```bash
    # Auf allen Plattformen
-   julia --project=@. -e "using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()"
+   julia --startup-file=no --project=@. -e "using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()"
    ```
 
    Dieses Kommando wird alle nötigen Julia-Pakete herunterladen und kompilieren. Das kann etwas dauern.
@@ -83,7 +83,7 @@ Um am Tag des Workshops interaktiv teilzunehmen, muss Jupyter gestartet und das 
 In diesem Verzeichnis wird der Befehl
 
 ```bash
-julia --project=@. -e "using IJulia; notebook(dir=pwd())"
+julia --startup-file=no --project=@. -e "using IJulia; notebook(dir=pwd())"
 ```
 
 ausgeführt. Daraufhin sollte sich der Browser mit Jupyter öffnen. Hier kann die Datei `workshop.ipynb` ausgewählt und geöffnet werden.
