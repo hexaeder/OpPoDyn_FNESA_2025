@@ -72,7 +72,7 @@ Bitte melden Sie sich per Mail bei uns, wenn es irgendwelche Probleme geben soll
 
    ```bash
    # Auf allen Plattformen
-   julia --project=@. -e "using Pkg; Pkg.instantiate()"
+   julia --project=@. -e "using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()"
    ```
 
    Dieses Kommando wird alle nötigen Julia-Pakete herunterladen und kompilieren. Das kann etwas dauern.
